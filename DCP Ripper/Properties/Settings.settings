@@ -1,0 +1,30 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="DCP_Ripper.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ffmpegLocation" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="format" Type="System.String" Scope="User">
+      <Value Profile="(Default)">x265_444</Value>
+    </Setting>
+    <Setting Name="crf" Type="System.String" Scope="User">
+      <Value Profile="(Default)">crf23</Value>
+    </Setting>
+    <Setting Name="matchCRF" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="crf3d" Type="System.String" Scope="User">
+      <Value Profile="(Default)">crf18_3d</Value>
+    </Setting>
+    <Setting Name="audio" Type="System.String" Scope="User">
+      <Value Profile="(Default)">libopus</Value>
+    </Setting>
+    <Setting Name="downscale" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="lastOpenFolder" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+  </Settings>
+</SettingsFile>

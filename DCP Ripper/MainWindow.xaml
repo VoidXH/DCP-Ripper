@@ -1,0 +1,70 @@
+﻿<Window x:Class="DCP_Ripper.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DCP_Ripper"
+        mc:Ignorable="d"
+        Title="DCP Ripper" MinHeight="320" Height="351" MaxHeight="400" MinWidth="510" Width="510" MaxWidth="510" Loaded="Window_Loaded" Closed="Window_Closed">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="250"/>
+        </Grid.ColumnDefinitions>
+        <GroupBox x:Name="contentBox" Grid.Column="0" Header="Content" HorizontalAlignment="Left" Height="300" Margin="10,10,0,0" VerticalAlignment="Top" Width="230">
+            <Grid>
+                <Button x:Name="openFolder" Content="Open folder" HorizontalAlignment="Left" VerticalAlignment="Top" Width="198" Margin="10,10,0,0" Click="OpenFolder_Click"/>
+                <ListView x:Name="foundContent" HorizontalAlignment="Left" Height="233" Margin="10,35,0,0" VerticalAlignment="Top" Width="198"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox x:Name="qualityBox" Grid.Column="1" Header="Quality" HorizontalAlignment="Left" Height="196" Margin="10,10,0,0" VerticalAlignment="Top" Width="231">
+            <Grid>
+                <Label x:Name="formatLabel" Content="Format:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                <ComboBox x:Name="format" HorizontalAlignment="Right" Width="143" Margin="0,12,10,0" VerticalAlignment="Top">
+                    <ComboBoxItem Name="x265_444" Content="HEVC RExt 4:4:4" IsSelected="True"/>
+                    <ComboBoxItem Name="x265_420" Content="HEVC 4:2:0"/>
+                    <ComboBoxItem Name="x264_420" Content="AVC 4:2:0"/>
+                </ComboBox>
+                <Label x:Name="crfLabel" Content="CRF:" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top"/>
+                <ComboBox x:Name="crf" HorizontalAlignment="Right" Width="160" Margin="0,43,10,0" VerticalAlignment="Top">
+                    <ComboBoxItem Name="crf0" Content="0 (lossless)"/>
+                    <ComboBoxItem Name="crf13" Content="13 (practially lossless)"/>
+                    <ComboBoxItem Name="crf18" Content="18 (transparent, 3D recommended)"/>
+                    <ComboBoxItem Name="crf23" Content="23 (2D recommended)" IsSelected="True"/>
+                    <ComboBoxItem Name="crf28" Content="28 (default)"/>
+                    <ComboBoxItem Name="crf33" Content="33 (very low quality)"/>
+                    <ComboBoxItem Name="crf51" Content="51 (lowest quality)"/>
+                </ComboBox>
+                <CheckBox x:Name="matchCRF" Content="Use same CRF for 3D content" HorizontalAlignment="Left" Margin="10,72,0,0" VerticalAlignment="Top" Checked="MatchCRF_Checked" Unchecked="MatchCRF_Unchecked"/>
+                <Label x:Name="crf3dLabel" Content="3D CRF:" HorizontalAlignment="Left" Margin="10,92,0,0" VerticalAlignment="Top"/>
+                <ComboBox x:Name="crf3d" HorizontalAlignment="Right" Width="143" Margin="0,94,10,0" VerticalAlignment="Top">
+                    <ComboBoxItem Name="crf0_3d" Content="0 (lossless)"/>
+                    <ComboBoxItem Name="crf8_3d" Content="8 (practially lossless)"/>
+                    <ComboBoxItem Name="crf13_3d" Content="13 (transparent)"/>
+                    <ComboBoxItem Name="crf18_3d" Content="18 (recommended)" IsSelected="True"/>
+                    <ComboBoxItem Name="crf23_3d" Content="23 (good quality)"/>
+                    <ComboBoxItem Name="crf28_3d" Content="28 (default)"/>
+                    <ComboBoxItem Name="crf33_3d" Content="33 (very low quality)"/>
+                    <ComboBoxItem Name="crf51_3d" Content="51 (lowest quality)"/>
+                </ComboBox>
+                <Label x:Name="audioLabel" Content="Audio:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,121,0,0"/>
+                <ComboBox x:Name="audio" HorizontalAlignment="Right" Width="149" Margin="0,123,10,0" VerticalAlignment="Top">
+                    <ComboBoxItem Name="aac" Content="AAC (low quality, small, 5.1 only)"/>
+                    <ComboBoxItem Name="libvorbis" Content="Vorbis (high quality, small)"/>
+                    <ComboBoxItem Name="libopus" Content="Opus (transparent, small)" IsSelected="True"/>
+                    <ComboBoxItem Name="pcm_s16le" Content="PCM 16 bit (transparent, large)"/>
+                    <ComboBoxItem Name="flac" Content="FLAC (lossless, large)"/>
+                    <ComboBoxItem Name="pcm_s24le" Content="PCM 24 bit (raw, largest)"/>
+                </ComboBox>
+                <CheckBox x:Name="downscale" Content="Downscale 4K content to 2K" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,152,0,0"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox x:Name="processBox" Grid.Column="1" Header="Process" HorizontalAlignment="Left" Height="99" Margin="10,211,0,0" VerticalAlignment="Top" Width="231">
+            <Grid>
+                <Button x:Name="start" Content="Start" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="Start_Click" IsEnabled="False"/>
+                <Label x:Name="processLabel" Content="Locating FFmpeg..." HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,41,0,0" Width="199"/>
+                <Button x:Name="locateFFmpeg" Content="Locate FFmpeg" HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top" Width="119" Click="LocateFFmpeg_Click"/>
+            </Grid>
+        </GroupBox>
+    </Grid>
+</Window>
