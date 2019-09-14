@@ -175,6 +175,7 @@ namespace DCP_Ripper {
                         case "MainPicture":
                             video = true;
                             break;
+                        case "sicpl:MainStereoscopicPicture":
                         case "msp-cpl:MainStereoscopicPicture":
                             video = true;
                             reel.is3D = true;
