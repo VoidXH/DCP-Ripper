@@ -5,16 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DCP_Ripper"
         mc:Ignorable="d"
-        Title="DCP Ripper" MinHeight="320" Height="351" MaxHeight="400" MinWidth="510" Width="510" MaxWidth="510" Loaded="Window_Loaded" Closed="Window_Closed">
+        Title="DCP Ripper" MinHeight="351" Height="351" MaxHeight="351" MinWidth="510" Width="510" MaxWidth="510" Loaded="Window_Loaded" Closed="Window_Closed">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="250"/>
         </Grid.ColumnDefinitions>
-        <GroupBox x:Name="contentBox" Grid.Column="0" Header="Content" HorizontalAlignment="Left" Height="300" Margin="10,10,0,0" VerticalAlignment="Top" Width="230">
+        <GroupBox x:Name="contentBox" Grid.Column="0" Header="Content" HorizontalAlignment="Left" Height="275" Margin="10,10,0,0" VerticalAlignment="Top" Width="230">
             <Grid>
                 <Button x:Name="openFolder" Content="Open folder" HorizontalAlignment="Left" VerticalAlignment="Top" Width="198" Margin="10,10,0,0" Click="OpenFolder_Click"/>
-                <ListView x:Name="foundContent" HorizontalAlignment="Left" Height="233" Margin="10,35,0,0" VerticalAlignment="Top" Width="198"/>
+                <ListView x:Name="foundContent" HorizontalAlignment="Left" Height="208" Margin="10,35,0,0" VerticalAlignment="Top" Width="198"/>
             </Grid>
         </GroupBox>
         <GroupBox x:Name="qualityBox" Grid.Column="1" Header="Quality" HorizontalAlignment="Left" Height="196" Margin="10,10,0,0" VerticalAlignment="Top" Width="231">
@@ -66,5 +66,6 @@
                 <Button x:Name="locateFFmpeg" Content="Locate FFmpeg" HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top" Width="119" Click="LocateFFmpeg_Click"/>
             </Grid>
         </GroupBox>
+        <Button x:Name="aboutLink" Content="by VoidX" HorizontalAlignment="Left" Margin="166,290,0,0" VerticalAlignment="Top" Width="75" Click="AboutLink_Click"/>
     </Grid>
 </Window>

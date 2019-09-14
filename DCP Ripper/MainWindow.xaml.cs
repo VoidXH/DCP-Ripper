@@ -1,5 +1,6 @@
 ﻿using DCP_Ripper.Properties;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -110,5 +111,7 @@ namespace DCP_Ripper {
             Settings.Default.downscale = downscale.IsChecked.Value;
             Settings.Default.Save();
         }
+
+        void AboutLink_Click(object sender, RoutedEventArgs e) => Process.Start("http://en.sbence.hu");
     }
 }
