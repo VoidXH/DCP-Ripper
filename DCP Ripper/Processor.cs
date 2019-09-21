@@ -144,7 +144,10 @@ namespace DCP_Ripper {
                             contents.Add(reel);
                         continue;
                     }
-                    switch (reader.Name) {
+                    if (reader.Name.EndsWith("MainStereoscopicPicture")) {
+                        video = true;
+                        reel.is3D = true;
+                    } else switch (reader.Name) {
                         case "Id":
                             reader.Read();
                             if (assets.ContainsKey(reader.Value)) {
@@ -174,11 +177,6 @@ namespace DCP_Ripper {
                             break;
                         case "MainPicture":
                             video = true;
-                            break;
-                        case "sicpl:MainStereoscopicPicture":
-                        case "msp-cpl:MainStereoscopicPicture":
-                            video = true;
-                            reel.is3D = true;
                             break;
                         case "MainSound":
                             video = false;

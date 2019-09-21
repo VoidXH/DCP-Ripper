@@ -90,7 +90,7 @@ namespace DCP_Ripper {
                 processLabel.Content = "Finished!";
             else {
                 int failureCount = compositions.Count - finished;
-                processLabel.Content = string.Format("Finished with {0} failure{1}!", failureCount, failureCount != 1 ? "s" : string.Empty);
+                processLabel.Content = string.Format("Finished with {0} failure{1}!", failureCount, failureCount > 1 ? "s" : string.Empty);
             }
         }
 
