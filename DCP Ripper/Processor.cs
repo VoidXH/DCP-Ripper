@@ -136,18 +136,19 @@ namespace DCP_Ripper {
             string directory = cplPath.Substring(0, cplPath.LastIndexOf('\\') + 1);
             Dictionary<string, string> assets = ParseAssetMap(directory);
             Content reel = new Content();
-            bool video = true;
             using (XmlReader reader = XmlReader.Create(cplPath)) {
+                bool video = true;
                 while (reader.Read()) {
                     if (reader.NodeType != XmlNodeType.Element) {
                         if (reader.NodeType == XmlNodeType.EndElement && reader.Name.Equals("Reel"))
                             contents.Add(reel);
                         continue;
-                    }
-                    if (reader.Name.EndsWith("MainStereoscopicPicture")) {
+                    } else if (reader.Name.EndsWith("MainStereoscopicPicture")) {
                         video = true;
                         reel.is3D = true;
-                    } else switch (reader.Name) {
+                        continue;
+                    }
+                    switch (reader.Name) {
                         case "Id":
                             reader.Read();
                             if (assets.ContainsKey(reader.Value)) {
@@ -180,6 +181,9 @@ namespace DCP_Ripper {
                             break;
                         case "MainSound":
                             video = false;
+                            break;
+                        case "MainSubtitle":
+                            while (reader.Read() && reader.NodeType != XmlNodeType.EndElement && !reader.Name.Equals("MainSubtitle")) ;
                             break;
                         case "ContentTitleText":
                             reader.Read();
