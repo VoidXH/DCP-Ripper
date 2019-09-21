@@ -183,7 +183,7 @@ namespace DCP_Ripper {
                             video = false;
                             break;
                         case "MainSubtitle":
-                            while (reader.Read() && reader.NodeType != XmlNodeType.EndElement && !reader.Name.Equals("MainSubtitle")) ;
+                            while (reader.Read() && (reader.NodeType != XmlNodeType.EndElement || !reader.Name.Equals("MainSubtitle"))) ;
                             break;
                         case "ContentTitleText":
                             reader.Read();
