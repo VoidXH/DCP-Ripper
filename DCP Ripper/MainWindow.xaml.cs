@@ -88,8 +88,10 @@ namespace DCP_Ripper {
             }
             if (finished == compositions.Count)
                 processLabel.Content = "Finished!";
-            else
-                processLabel.Content = string.Format("Finished with {0} failures!", compositions.Count - finished);
+            else {
+                int failureCount = compositions.Count - finished;
+                processLabel.Content = string.Format("Finished with {0} failure{1}!", failureCount, failureCount != 1 ? "s" : string.Empty);
+            }
         }
 
         void LocateFFmpeg_Click(object sender, RoutedEventArgs e) {
