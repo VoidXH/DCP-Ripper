@@ -217,6 +217,10 @@ namespace DCP_Ripper {
             string videoStart = (content.videoStartFrame / (float)content.framerate).ToString("0.000").Replace(',', '.');
             string subsampling = ChromaSubsampling ? "-pix_fmt yuv420p" : string.Empty;
             string fileName = content.videoFile.Replace(".mxf", ".mkv").Replace(".MXF", ".mkv");
+#if DEBUG
+            if (File.Exists(fileName))
+                return fileName;
+#endif
             if (!content.is3D) {
                 string length = (content.duration / (float)content.framerate).ToString("0.000").Replace(',', '.');
                 return LaunchFFmpeg(string.Format("-ss {0} -i \"{1}\" -t {2} -c:v {3} {4} {5} -crf {6} -v error -stats \"{7}\"",
@@ -253,6 +257,10 @@ namespace DCP_Ripper {
         /// </summary>
         public string ProcessAudio(Content content) {
             string fileName = content.audioFile.Replace(".mxf", ".mkv").Replace(".MXF", ".mkv");
+#if DEBUG
+            if (File.Exists(fileName))
+                return fileName;
+#endif
             return LaunchFFmpeg(string.Format("-i \"{0}\" -ss {1} -t {2} -c:a {3} -v error -stats \"{4}\"",
                 content.audioFile,
                 (content.audioStartFrame / (float)content.framerate).ToString("0.000").Replace(',', '.'),
@@ -266,16 +274,12 @@ namespace DCP_Ripper {
         /// </summary>
         public bool Merge(string video, string audio, string fileName) {
             LaunchFFmpeg(string.Format("-i \"{0}\" -i \"{1}\" -c copy -v error -stats \"{2}\"", video, audio, fileName));
-            bool merged = true;
-            if (File.Exists(video))
+            if (File.Exists(video) && File.Exists(audio)) {
                 File.Delete(video);
-            else
-                merged = false;
-            if (File.Exists(audio))
                 File.Delete(audio);
-            else
-                merged = false;
-            return merged && File.Exists(fileName);
+                return File.Exists(fileName);
+            }
+            return false;
         }
 
         /// <summary>
