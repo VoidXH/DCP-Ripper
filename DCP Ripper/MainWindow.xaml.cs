@@ -49,8 +49,7 @@ namespace DCP_Ripper {
             ComboBoxSelect(audio, Settings.Default.audio);
             downscale.IsChecked = Settings.Default.downscale;
             CheckFFmpeg(Settings.Default.ffmpegLocation);
-            if (Directory.Exists(Settings.Default.lastOpenFolder))
-                OpenFolder(Settings.Default.lastOpenFolder);
+            Refresh_Click(null, null);
         }
 
         void OpenFolder_Click(object sender, RoutedEventArgs e) {
@@ -61,6 +60,13 @@ namespace DCP_Ripper {
                     Settings.Default.Save();
                 }
             }
+        }
+
+        void AboutLink_Click(object sender, RoutedEventArgs e) => Process.Start("http://en.sbence.hu");
+
+        void Refresh_Click(object sender, RoutedEventArgs e) {
+            if (Directory.Exists(Settings.Default.lastOpenFolder))
+                OpenFolder(Settings.Default.lastOpenFolder);
         }
 
         void MatchCRF_Checked(object sender, RoutedEventArgs e) => crf3d.IsEnabled = false;
@@ -113,7 +119,5 @@ namespace DCP_Ripper {
             Settings.Default.downscale = downscale.IsChecked.Value;
             Settings.Default.Save();
         }
-
-        void AboutLink_Click(object sender, RoutedEventArgs e) => Process.Start("http://en.sbence.hu");
     }
 }

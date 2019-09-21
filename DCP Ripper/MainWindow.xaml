@@ -11,10 +11,12 @@
             <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="250"/>
         </Grid.ColumnDefinitions>
-        <GroupBox x:Name="contentBox" Grid.Column="0" Header="Content" HorizontalAlignment="Left" Height="275" Margin="10,10,0,0" VerticalAlignment="Top" Width="230">
+        <GroupBox x:Name="contentBox" Grid.Column="0" Header="Content" HorizontalAlignment="Left" Height="300" Margin="10,10,0,0" VerticalAlignment="Top" Width="230">
             <Grid>
                 <Button x:Name="openFolder" Content="Open folder" HorizontalAlignment="Left" VerticalAlignment="Top" Width="198" Margin="10,10,0,0" Click="OpenFolder_Click"/>
                 <ListView x:Name="foundContent" HorizontalAlignment="Left" Height="208" Margin="10,35,0,0" VerticalAlignment="Top" Width="198"/>
+                <Button x:Name="refresh" Content="Refresh" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="75" Click="Refresh_Click"/>
+                <Button x:Name="aboutLink" Content="by VoidX" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="75" Click="AboutLink_Click"/>
             </Grid>
         </GroupBox>
         <GroupBox x:Name="qualityBox" Grid.Column="1" Header="Quality" HorizontalAlignment="Left" Height="196" Margin="10,10,0,0" VerticalAlignment="Top" Width="231">
@@ -62,10 +64,9 @@
         <GroupBox x:Name="processBox" Grid.Column="1" Header="Process" HorizontalAlignment="Left" Height="99" Margin="10,211,0,0" VerticalAlignment="Top" Width="231">
             <Grid>
                 <Button x:Name="start" Content="Start" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="Start_Click" IsEnabled="False"/>
-                <Label x:Name="processLabel" Content="Locating FFmpeg..." HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,41,0,0" Width="199"/>
-                <Button x:Name="locateFFmpeg" Content="Locate FFmpeg" HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top" Width="119" Click="LocateFFmpeg_Click"/>
+                <Label x:Name="processLabel" Content="Locating FFmpeg..." HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,10" Width="199"/>
+                <Button x:Name="locateFFmpeg" Content="Locate FFmpeg" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="119" Click="LocateFFmpeg_Click"/>
             </Grid>
         </GroupBox>
-        <Button x:Name="aboutLink" Content="by VoidX" HorizontalAlignment="Left" Margin="166,290,0,0" VerticalAlignment="Top" Width="75" Click="AboutLink_Click"/>
     </Grid>
 </Window>
