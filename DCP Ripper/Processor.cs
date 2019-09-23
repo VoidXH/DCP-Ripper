@@ -10,40 +10,6 @@ namespace DCP_Ripper {
     /// </summary>
     public class Processor {
         /// <summary>
-        /// A single reel of content.
-        /// </summary>
-        public struct Content {
-            /// <summary>
-            /// Video track path.
-            /// </summary>
-            public string videoFile;
-            /// <summary>
-            /// Audio track path.
-            /// </summary>
-            public string audioFile;
-            /// <summary>
-            /// This content is 3D.
-            /// </summary>
-            public bool is3D;
-            /// <summary>
-            /// First usable frame of the video track.
-            /// </summary>
-            public int videoStartFrame;
-            /// <summary>
-            /// First usable position of the audio track in video frames.
-            /// </summary>
-            public int audioStartFrame;
-            /// <summary>
-            /// Duration of both tracks in video frames.
-            /// </summary>
-            public int duration;
-            /// <summary>
-            /// Frame rate of the content.
-            /// </summary>
-            public int framerate;
-        }
-
-        /// <summary>
         /// Composition title.
         /// </summary>
         public string Title { get; private set; }
@@ -289,33 +255,21 @@ namespace DCP_Ripper {
         /// <summary>
         /// Process the video files of this DCP. Returns if all reels were successfully processed.
         /// </summary>
-        public bool ProcessAll() {
+        /// <param name="force2K">Downscale 4K content to 2K</param>
+        /// <param name="forcePath">Change the default output directory, which is the container of the video file</param>
+        public bool ProcessComposition(bool force2K = false, string forcePath = null) {
             int reelsDone = 0;
             for (int i = 0, length = contents.Count; i < length; ++i) {
-                string video = ProcessVideo(contents[i]);
+                string video = force2K ? ProcessVideo2K(contents[i]) : ProcessVideo(contents[i]);
                 string audio = ProcessAudio(contents[i]);
                 if (video != null && audio != null) {
-                    string path = contents[i].videoFile.Substring(0, contents[i].videoFile.LastIndexOf("\\") + 1);
-                    string fileName = length == 1 ? Title + ".mkv" : string.Format("{0}_{1}.mkv", Title, i + 1);
-                    if (Merge(video, audio, path + fileName))
-                        ++reelsDone;
-                }
-            }
-            return reelsDone == contents.Count;
-        }
-
-        /// <summary>
-        /// Process the video files of this DCP. If the resolution is 4K, it will be downscaled to 2K.
-        /// Returns if all reels were successfully processed.
-        /// </summary>
-        public bool ProcessAll2K() {
-            int reelsDone = 0;
-            for (int i = 0, length = contents.Count; i < length; ++i) {
-                string video = ProcessVideo2K(contents[i]);
-                string audio = ProcessAudio(contents[i]);
-                if (video != null && audio != null) {
-                    string path = contents[i].videoFile.Substring(0, contents[i].videoFile.LastIndexOf("\\") + 1);
-                    string fileName = length == 1 ? Title + ".mkv" : string.Format("{0}_{1}.mkv", Title.Replace("_4K", "_2K"), i + 1);
+                    string path = forcePath;
+                    if (path == null)
+                        path = contents[i].videoFile.Substring(0, contents[i].videoFile.LastIndexOf("\\") + 1);
+                    else if (!path.EndsWith("\\"))
+                        path += '\\';
+                    string fileName = length == 1 ? Title + ".mkv" : string.Format("{0}_{1}.mkv",
+                        force2K ? Title.Replace("_4K", "_2K") : Title, i + 1);
                     if (Merge(video, audio, path + fileName))
                         ++reelsDone;
                 }

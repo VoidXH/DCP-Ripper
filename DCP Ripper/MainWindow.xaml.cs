@@ -5,13 +5,21 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
+using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
+
 namespace DCP_Ripper {
     /// <summary>
     /// Interaction logic for MainWindow.xaml.
     /// </summary>
     public partial class MainWindow : Window { // TODO: async process
+        const string parentMarker = "parent";
         List<string> compositions = new List<string>();
         string ffmpegPath;
+
+        /// <summary>
+        /// Forced content output path. Null means default (next to video files), <see cref="parentMarker"/> means its parent.
+        /// </summary>
+        string outputPath = null;
 
         /// <summary>
         /// Window constructor.
@@ -49,11 +57,24 @@ namespace DCP_Ripper {
             ComboBoxSelect(audio, Settings.Default.audio);
             downscale.IsChecked = Settings.Default.downscale;
             CheckFFmpeg(Settings.Default.ffmpegLocation);
+            switch (Settings.Default.outputPath) {
+                case "":
+                    outputDefault.IsChecked = true;
+                    break;
+                case parentMarker:
+                    outputParent.IsChecked = true;
+                    break;
+                default:
+                    outputCustom.IsChecked = true;
+                    OutputCustom_Checked(Settings.Default.outputPath, null);
+                    break;
+            }
+            outputCustom.Checked += OutputCustom_Checked;
             Refresh_Click(null, null);
         }
 
         void OpenFolder_Click(object sender, RoutedEventArgs e) {
-            using (var dialog = new System.Windows.Forms.FolderBrowserDialog()) {
+            using (var dialog = new FolderBrowserDialog()) {
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
                     OpenFolder(dialog.SelectedPath);
                     Settings.Default.lastOpenFolder = dialog.SelectedPath;
@@ -86,10 +107,12 @@ namespace DCP_Ripper {
                     processor.CRF3D = processor.CRF;
                 else
                     processor.CRF3D = int.Parse(((ComboBoxItem)crf3d.SelectedItem).Name.Split('_')[0].Substring(3));
-                if (downscale.IsChecked.Value) {
-                    if (processor.ProcessAll2K())
-                        ++finished;
-                } else if(processor.ProcessAll())
+                string finalOutput = outputPath;
+                if (!string.IsNullOrEmpty(outputPath) && outputPath.Equals(parentMarker)) {
+                    finalOutput = composition.Substring(0, composition.LastIndexOf('\\', composition.Length - 1));
+                    finalOutput = finalOutput.Substring(0, finalOutput.LastIndexOf('\\', finalOutput.Length - 1));
+                }
+                if (processor.ProcessComposition(downscale.IsChecked.Value, finalOutput))
                     ++finished;
             }
             if (finished == compositions.Count)
@@ -101,12 +124,32 @@ namespace DCP_Ripper {
         }
 
         void LocateFFmpeg_Click(object sender, RoutedEventArgs e) {
-            using (var dialog = new System.Windows.Forms.FolderBrowserDialog()) {
+            using (var dialog = new FolderBrowserDialog()) {
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
                     CheckFFmpeg(dialog.SelectedPath);
                     Settings.Default.ffmpegLocation = dialog.SelectedPath;
                     Settings.Default.Save();
                 }
+            }
+        }
+
+        void OutputDefault_Checked(object sender, RoutedEventArgs e) => outputPath = null;
+
+        void OutputParent_Checked(object sender, RoutedEventArgs e) => outputPath = parentMarker;
+
+        void OutputCustom_Checked(object sender, RoutedEventArgs e) {
+            if (sender is string) {
+                if (Directory.Exists((string)sender))
+                    outputPath = (string)sender;
+                else
+                    outputDefault.IsChecked = true;
+            } else using (var dialog = new FolderBrowserDialog()) {
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    outputPath = dialog.SelectedPath;
+                else if (string.IsNullOrEmpty(outputPath))
+                    outputDefault.IsChecked = true;
+                else
+                    outputParent.IsChecked = true;
             }
         }
 
@@ -117,6 +160,7 @@ namespace DCP_Ripper {
             Settings.Default.crf3d = ((ComboBoxItem)crf3d.SelectedItem).Name;
             Settings.Default.audio = ((ComboBoxItem)audio.SelectedItem).Name;
             Settings.Default.downscale = downscale.IsChecked.Value;
+            Settings.Default.outputPath = outputPath;
             Settings.Default.Save();
         }
     }

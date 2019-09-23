@@ -26,5 +26,8 @@
     <Setting Name="lastOpenFolder" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="outputPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">parent</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -118,5 +118,17 @@ namespace DCP_Ripper.Properties {
                 this["lastOpenFolder"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("parent")]
+        public string outputPath {
+            get {
+                return ((string)(this["outputPath"]));
+            }
+            set {
+                this["outputPath"] = value;
+            }
+        }
     }
 }
