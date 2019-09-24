@@ -200,20 +200,30 @@ namespace DCP_Ripper {
             string leftFile = content.videoFile.Replace(".mxf", "_L.mkv").Replace(".MXF", "_L.mkv");
             string doubleLength = "-t " + (content.duration * 2 / (float)content.framerate).ToString("0.000").Replace(',', '.');
             string lowerCRF = "-crf " + Math.Max(CRF3D - 5, 0);
-            if (!LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" {3} -vf select=\"mod(n-1\\,2)\",scale=iw/2:ih,setsar=1:1 -c:v {4} {5} -v error -stats \"{6}\"",
+#if DEBUG
+            if (!File.Exists(leftFile))
+#endif
+            if (!LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" {3} -vf select=\"mod(n-1\\,2)\",scale=iw/2:ih,setsar=1:1 " +
+                "-c:v {4} {5} -v error -stats \"{6}\"",
                 doubleRate, videoStart, content.videoFile, doubleLength, VideoFormat, lowerCRF, leftFile)))
                 return null;
             string rightFile = content.videoFile.Replace(".mxf", "_R.mkv").Replace(".MXF", "_R.mkv");
-            if (!LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" {3} -vf select=\"not(mod(n-1\\,2))\",scale=iw/2:ih,setsar=1:1 -c:v {4} {5} -v error -stats \"{6}\"",
+#if DEBUG
+            if (!File.Exists(rightFile))
+#endif
+            if (!LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" {3} -vf select=\"not(mod(n-1\\,2))\",scale=iw/2:ih,setsar=1:1 " +
+                "-c:v {4} {5} -v error -stats \"{6}\"",
                 doubleRate, videoStart, content.videoFile, doubleLength, VideoFormat, lowerCRF, rightFile))) {
-                File.Delete(leftFile);
                 return null;
             }
-            bool success = LaunchFFmpeg(string.Format("ffmpeg -i \"{0}\" -i \"{1}\" -filter_complex [0:v][1:v]hstack=inputs=2[v] -map [v] -c:v {2} -crf {3} -v error -stats \"{4}\"",
-                leftFile, rightFile, VideoFormat, CRF3D, fileName));
-            File.Delete(leftFile);
-            File.Delete(rightFile);
-            return success ? fileName : null;
+            if (LaunchFFmpeg(string.Format("ffmpeg -i \"{0}\" -i \"{1}\" -filter_complex [0:v][1:v]hstack=inputs=2[v] -map [v] " +
+                "-c:v {2} -crf {3} -v error -stats \"{4}\"",
+                leftFile, rightFile, VideoFormat, CRF3D, fileName))) {
+                File.Delete(leftFile);
+                File.Delete(rightFile);
+                return fileName;
+            }
+            return null;
         }
 
         /// <summary>
