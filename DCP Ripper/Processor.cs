@@ -216,7 +216,7 @@ namespace DCP_Ripper {
                 doubleRate, videoStart, content.videoFile, doubleLength, VideoFormat, lowerCRF, rightFile))) {
                 return null;
             }
-            if (LaunchFFmpeg(string.Format("ffmpeg -i \"{0}\" -i \"{1}\" -filter_complex [0:v][1:v]hstack=inputs=2[v] -map [v] " +
+            if (LaunchFFmpeg(string.Format("-i \"{0}\" -i \"{1}\" -filter_complex [0:v][1:v]hstack=inputs=2[v] -map [v] " +
                 "-c:v {2} -crf {3} -v error -stats \"{4}\"",
                 leftFile, rightFile, VideoFormat, CRF3D, fileName))) {
                 File.Delete(leftFile);
