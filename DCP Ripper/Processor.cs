@@ -72,8 +72,11 @@ namespace DCP_Ripper {
         /// </summary>
         Dictionary<string, string> ParseAssetMap(string directory) {
             Dictionary<string, string> map = new Dictionary<string, string>();
+            string fileName = directory + "ASSETMAP";
+            if (!File.Exists(fileName))
+                return map;
             string nextId = string.Empty;
-            using (XmlReader reader = XmlReader.Create(directory + "ASSETMAP")) {
+            using (XmlReader reader = XmlReader.Create(fileName)) {
                 while (reader.Read()) {
                     if (reader.NodeType != XmlNodeType.Element)
                         continue;
@@ -122,6 +125,15 @@ namespace DCP_Ripper {
                                     reel.videoFile = directory + assets[reader.Value];
                                 else
                                     reel.audioFile = directory + assets[reader.Value];
+                            } else { // Try to parse a single reel content with a missing asset map
+                                List<string> bulkAssets = Finder.ForceGetAssets(directory);
+                                if (bulkAssets.Count == 2) {
+                                    long size0 = new FileInfo(bulkAssets[0]).Length, size1 = new FileInfo(bulkAssets[1]).Length;
+                                    if (video)
+                                        reel.videoFile = bulkAssets[size0 < size1 ? 1 : 0];
+                                    else
+                                        reel.audioFile = bulkAssets[size1 < size0 ? 1 : 0];
+                                }
                             }
                             break;
                         case "EntryPoint":
@@ -184,6 +196,8 @@ namespace DCP_Ripper {
         /// Process a video file. The created file will have the same name, but in Matroska format, which is the returned value.
         /// </summary>
         public string ProcessVideo(Content content, string extraModifiers = "") {
+            if (!File.Exists(content.videoFile))
+                return null;
             string videoStart = (content.videoStartFrame / (float)content.framerate).ToString("0.000").Replace(',', '.');
             string subsampling = ChromaSubsampling ? "-pix_fmt yuv420p" : string.Empty;
             string fileName = content.videoFile.Replace(".mxf", ".mkv").Replace(".MXF", ".mkv");
@@ -236,6 +250,8 @@ namespace DCP_Ripper {
         /// Process the audio file of a content. The created file will have the same name, but in Matroska format, which is the returned value.
         /// </summary>
         public string ProcessAudio(Content content) {
+            if (!File.Exists(content.audioFile))
+                return null;
             string fileName = content.audioFile.Replace(".mxf", ".mkv").Replace(".MXF", ".mkv");
 #if DEBUG
             if (File.Exists(fileName))

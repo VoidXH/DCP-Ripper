@@ -57,5 +57,17 @@ namespace DCP_Ripper {
             ProcessFolder(path, result);
             return result;
         }
+
+        /// <summary>
+        /// Get all MXF files in a folder (=assets in a composition). Might be useful when an asset map is missing.
+        /// </summary>
+        public static List<string> ForceGetAssets(string path) {
+            string[] allFiles = Directory.GetFiles(path);
+            List<string> assets = new List<string>();
+            foreach (string asset in allFiles)
+                if (asset.ToLower().EndsWith(".mxf"))
+                    assets.Add(asset);
+            return assets;
+        }
     }
 }
