@@ -2,7 +2,7 @@
     /// <summary>
     /// A single reel of content.
     /// </summary>
-    public struct Content {
+    public struct Reel {
         /// <summary>
         /// Video track path.
         /// </summary>

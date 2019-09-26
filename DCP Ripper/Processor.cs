@@ -50,7 +50,7 @@ namespace DCP_Ripper {
         /// <summary>
         /// List of reel data in this composition.
         /// </summary>
-        public IReadOnlyList<Content> Contents => contents;
+        public IReadOnlyList<Reel> Contents => contents;
 
         /// <summary>
         /// Use chroma subsampling.
@@ -60,7 +60,7 @@ namespace DCP_Ripper {
         /// <summary>
         /// List of reel data in this composition.
         /// </summary>
-        readonly List<Content> contents = new List<Content>();
+        readonly List<Reel> contents = new List<Reel>();
 
         /// <summary>
         /// Path of FFmpeg.
@@ -104,7 +104,7 @@ namespace DCP_Ripper {
             this.ffmpegPath = ffmpegPath;
             string directory = cplPath.Substring(0, cplPath.LastIndexOf('\\') + 1);
             Dictionary<string, string> assets = ParseAssetMap(directory);
-            Content reel = new Content();
+            Reel reel = new Reel();
             using (XmlReader reader = XmlReader.Create(cplPath)) {
                 bool video = true;
                 while (reader.Read()) {
@@ -152,7 +152,7 @@ namespace DCP_Ripper {
                             reel.framerate = int.Parse(reader.Value.Substring(0, reader.Value.IndexOf(' ')));
                             break;
                         case "Reel":
-                            reel = new Content();
+                            reel = new Reel();
                             break;
                         case "MainPicture":
                             video = true;
@@ -198,7 +198,7 @@ namespace DCP_Ripper {
         /// <summary>
         /// Process a video file. The created file will have the same name, but in Matroska format, which is the returned value.
         /// </summary>
-        public string ProcessVideo(Content content, string extraModifiers = "") {
+        public string ProcessVideo(Reel content, string extraModifiers = "") {
             if (content.videoFile == null || !File.Exists(content.videoFile))
                 return null;
             string videoStart = (content.videoStartFrame / (float)content.framerate).ToString("0.000").Replace(',', '.');
@@ -247,13 +247,13 @@ namespace DCP_Ripper {
         /// Process a video file. If the resolution is 4K, it will be downscaled to 2K.
         /// The created file will have the same name, but in Matroska format, which is the returned value.
         /// </summary>
-        public string ProcessVideo2K(Content content) => ProcessVideo(content, Is4K ? "-vf scale=iw/2:ih/2" : string.Empty);
+        public string ProcessVideo2K(Reel content) => ProcessVideo(content, Is4K ? "-vf scale=iw/2:ih/2" : string.Empty);
 
         /// <summary>
         /// Process the audio file of a content. The created file will have the same name, but in Matroska format, which is the returned value.
         /// </summary>
-        public string ProcessAudio(Content content) {
-            if (content.audioFile || !File.Exists(content.audioFile))
+        public string ProcessAudio(Reel content) {
+            if (content.audioFile == null || !File.Exists(content.audioFile))
                 return null;
             string fileName = content.audioFile.Replace(".mxf", ".mkv").Replace(".MXF", ".mkv");
 #if DEBUG

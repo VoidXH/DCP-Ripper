@@ -42,9 +42,11 @@ namespace DCP_Ripper {
             compositions = Finder.ProcessFolder(path);
             foundContent.Items.Clear();
             foreach (string composition in compositions) {
+                string title = Finder.GetCPLTitle(composition);
+                CompositionInfo info = new CompositionInfo(title);
                 foundContent.Items.Add(new ListViewItem() {
-                    Content = Finder.GetCPLTitle(composition),
-                    IsEnabled = false
+                    Background = info.GetBrush(),
+                    Content = title
                 });
             }
         }
