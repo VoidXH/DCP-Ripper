@@ -163,6 +163,9 @@ namespace DCP_Ripper {
                         case "MainSubtitle":
                             while (reader.Read() && (reader.NodeType != XmlNodeType.EndElement || !reader.Name.Equals("MainSubtitle"))) ;
                             break;
+                        case "KeyId":
+                            reel.needsKey = true;
+                            break;
                         case "ContentTitleText":
                             reader.Read();
                             Is4K = (Title = reader.Value).Contains("_4K");
@@ -286,6 +289,8 @@ namespace DCP_Ripper {
         public bool ProcessComposition(bool force2K = false, string forcePath = null) {
             int reelsDone = 0;
             for (int i = 0, length = contents.Count; i < length; ++i) {
+                if (contents[i].needsKey)
+                    continue;
                 string video = force2K ? ProcessVideo2K(contents[i]) : ProcessVideo(contents[i]);
                 string audio = ProcessAudio(contents[i]);
                 if (video != null && audio != null) {

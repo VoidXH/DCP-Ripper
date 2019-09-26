@@ -31,5 +31,9 @@
         /// Frame rate of the content.
         /// </summary>
         public int framerate;
+        /// <summary>
+        /// This content is encrypted and can't be processed.
+        /// </summary>
+        public bool needsKey;
     }
 }
