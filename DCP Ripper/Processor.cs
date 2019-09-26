@@ -199,7 +199,7 @@ namespace DCP_Ripper {
         /// Process a video file. The created file will have the same name, but in Matroska format, which is the returned value.
         /// </summary>
         public string ProcessVideo(Content content, string extraModifiers = "") {
-            if (!File.Exists(content.videoFile))
+            if (content.videoFile == null || !File.Exists(content.videoFile))
                 return null;
             string videoStart = (content.videoStartFrame / (float)content.framerate).ToString("0.000").Replace(',', '.');
             string subsampling = ChromaSubsampling ? "-pix_fmt yuv420p" : string.Empty;
@@ -253,7 +253,7 @@ namespace DCP_Ripper {
         /// Process the audio file of a content. The created file will have the same name, but in Matroska format, which is the returned value.
         /// </summary>
         public string ProcessAudio(Content content) {
-            if (!File.Exists(content.audioFile))
+            if (content.audioFile || !File.Exists(content.audioFile))
                 return null;
             string fileName = content.audioFile.Replace(".mxf", ".mkv").Replace(".MXF", ".mkv");
 #if DEBUG
@@ -289,21 +289,25 @@ namespace DCP_Ripper {
         public bool ProcessComposition(bool force2K = false, string forcePath = null) {
             int reelsDone = 0;
             for (int i = 0, length = contents.Count; i < length; ++i) {
-                if (contents[i].needsKey)
+                if (contents[i].needsKey || contents[i].videoFile == null)
                     continue;
+                string path = forcePath;
+                if (path == null)
+                    path = contents[i].videoFile.Substring(0, contents[i].videoFile.LastIndexOf("\\") + 1);
+                else if (!path.EndsWith("\\"))
+                    path += '\\';
+                string fileName = path + (length == 1 ? Title + ".mkv" : string.Format("{0}_{1}.mkv",
+                    force2K ? Title.Replace("_4K", "_2K") : Title, i + 1));
+#if DEBUG
+                if (File.Exists(fileName)) {
+                    ++reelsDone;
+                    continue;
+                }
+#endif
                 string video = force2K ? ProcessVideo2K(contents[i]) : ProcessVideo(contents[i]);
                 string audio = ProcessAudio(contents[i]);
-                if (video != null && audio != null) {
-                    string path = forcePath;
-                    if (path == null)
-                        path = contents[i].videoFile.Substring(0, contents[i].videoFile.LastIndexOf("\\") + 1);
-                    else if (!path.EndsWith("\\"))
-                        path += '\\';
-                    string fileName = length == 1 ? Title + ".mkv" : string.Format("{0}_{1}.mkv",
-                        force2K ? Title.Replace("_4K", "_2K") : Title, i + 1);
-                    if (Merge(video, audio, path + fileName))
-                        ++reelsDone;
-                }
+                if (video != null && audio != null && Merge(video, audio, fileName))
+                    ++reelsDone;
             }
             return reelsDone == contents.Count;
         }
