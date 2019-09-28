@@ -5,18 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DCP_Ripper"
         mc:Ignorable="d"
-        Title="DCP Ripper" MinHeight="280" Height="280" MaxHeight="280" MinWidth="760" Width="760" MaxWidth="760" Loaded="Window_Loaded" Closed="Window_Closed">
+        Title="DCP Ripper" MinHeight="324" Height="324" MaxHeight="324" MinWidth="760" Width="760" MaxWidth="760" Loaded="Window_Loaded" Closed="Window_Closed">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="250"/>
         </Grid.ColumnDefinitions>
-        <GroupBox x:Name="contentBox" Grid.Column="0" Header="Content" HorizontalAlignment="Left" Height="196" Margin="10,10,0,0" VerticalAlignment="Top" Width="230">
+        <GroupBox x:Name="contentBox" Grid.Column="0" Header="Content" HorizontalAlignment="Left" Height="273" Margin="10,10,0,0" VerticalAlignment="Top" Width="230">
             <Grid>
                 <Button x:Name="openFolder" Content="Open folder" HorizontalAlignment="Left" VerticalAlignment="Top" Width="118" Margin="10,10,0,0" Click="OpenFolder_Click"/>
                 <Button x:Name="refresh" Content="Refresh" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="75" Click="Refresh_Click"/>
-                <ListView x:Name="foundContent" HorizontalAlignment="Left" Height="129" Margin="10,35,0,0" VerticalAlignment="Top" Width="198">
+                <ListView x:Name="foundContent" HorizontalAlignment="Left" Height="206" Margin="10,35,0,0" VerticalAlignment="Top" Width="198">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="BorderThickness" Value="0"/>
@@ -68,7 +68,7 @@
                 <CheckBox x:Name="downscale" Content="Downscale 4K content to 2K" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,152,0,0"/>
             </Grid>
         </GroupBox>
-        <GroupBox x:Name="processBox" Grid.Column="2" Header="Process" HorizontalAlignment="Left" Height="196" Margin="10,10,0,0" VerticalAlignment="Top" Width="230">
+        <GroupBox x:Name="processBox" Grid.Column="2" Header="Process" HorizontalAlignment="Left" Height="241" Margin="10,10,0,0" VerticalAlignment="Top" Width="230">
             <Grid>
                 <Button x:Name="start" Content="Start" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="74" Click="Start_Click" IsEnabled="False"/>
                 <Label x:Name="processLabel" Content="Locating FFmpeg..." HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,10" Width="198"/>
@@ -78,6 +78,9 @@
                 <RadioButton x:Name="outputParent" Content="Parent folder" HorizontalAlignment="Left" Margin="10,86,0,0" VerticalAlignment="Top" GroupName="outputLocation" Checked="OutputParent_Checked" IsChecked="True"/>
                 <RadioButton x:Name="outputCustom" Content="Custom" HorizontalAlignment="Left" Margin="10,106,0,0" VerticalAlignment="Top" GroupName="outputLocation"/>
                 <Button x:Name="failureList" Content="..." HorizontalAlignment="Right" Margin="0,0,10,13" VerticalAlignment="Bottom" Width="20" Click="FailureList_Click"/>
+                <CheckBox x:Name="zipAfter" Content="Zip" HorizontalAlignment="Left" Margin="10,157,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="afterLabel" Content="After completion:" HorizontalAlignment="Left" Margin="10,126,0,0" VerticalAlignment="Top"/>
+                <CheckBox x:Name="deleteAfter" Content="Delete" HorizontalAlignment="Left" Margin="61,157,0,0" VerticalAlignment="Top"/>
             </Grid>
         </GroupBox>
         <Button x:Name="aboutLink" Content="by VoidX" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="75" Click="AboutLink_Click" Grid.Column="2"/>

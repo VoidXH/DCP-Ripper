@@ -63,6 +63,8 @@ namespace DCP_Ripper {
             ComboBoxSelect(crf3d, Settings.Default.crf3d);
             ComboBoxSelect(audio, Settings.Default.audio);
             downscale.IsChecked = Settings.Default.downscale;
+            zipAfter.IsChecked = Settings.Default.zipAfter;
+            deleteAfter.IsChecked = Settings.Default.deleteAftter;
             CheckFFmpeg(Settings.Default.ffmpegLocation);
             switch (Settings.Default.outputPath) {
                 case "":
@@ -176,6 +178,8 @@ namespace DCP_Ripper {
             Settings.Default.audio = ((ComboBoxItem)audio.SelectedItem).Name;
             Settings.Default.downscale = downscale.IsChecked.Value;
             Settings.Default.outputPath = outputPath;
+            Settings.Default.zipAfter = zipAfter.IsChecked.Value;
+            Settings.Default.deleteAftter = deleteAfter.IsChecked.Value;
             Settings.Default.Save();
         }
     }

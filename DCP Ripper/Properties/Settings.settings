@@ -29,5 +29,11 @@
     <Setting Name="outputPath" Type="System.String" Scope="User">
       <Value Profile="(Default)">parent</Value>
     </Setting>
+    <Setting Name="zipAfter" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="deleteAftter" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

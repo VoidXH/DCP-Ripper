@@ -130,5 +130,29 @@ namespace DCP_Ripper.Properties {
                 this["outputPath"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool zipAfter {
+            get {
+                return ((bool)(this["zipAfter"]));
+            }
+            set {
+                this["zipAfter"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool deleteAftter {
+            get {
+                return ((bool)(this["deleteAftter"]));
+            }
+            set {
+                this["deleteAftter"] = value;
+            }
+        }
     }
 }
