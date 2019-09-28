@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Xml;
 
 namespace DCP_Ripper {
@@ -56,6 +57,39 @@ namespace DCP_Ripper {
             List<string> result = new List<string>();
             ProcessFolder(path, result);
             return result;
+        }
+
+        /// <summary>
+        /// Delete all assets from a composition, and delete the folder if it's empty.
+        /// </summary>
+        public static void DeleteAssets(string path) {
+            bool hasOutput = false;
+            string[] allFiles = Directory.GetFiles(path);
+            foreach (string asset in allFiles) {
+                if (!asset.EndsWith(".mkv") && !asset.EndsWith(".zip"))
+                    File.Delete(asset);
+                else
+                    hasOutput = true;
+            }
+            if (!hasOutput)
+                Directory.Delete(path);
+        }
+
+        /// <summary>
+        /// Zips all assets from a composition.
+        /// </summary>
+        public static void ZipAssets(string path, string zipPath) {
+            if (File.Exists(zipPath))
+                return;
+            if (!path.EndsWith("\\"))
+                path += '\\';
+            using (ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Create)) {
+                string[] allFiles = Directory.GetFiles(path);
+                foreach (string asset in allFiles)
+                    if (!asset.EndsWith(".mkv") && !asset.EndsWith(".zip"))
+                        zip.CreateEntryFromFile(asset, asset.Substring(path.Length),
+                            CompressionLevel.Optimal);
+            }
         }
 
         /// <summary>

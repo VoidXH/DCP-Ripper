@@ -107,7 +107,8 @@ namespace DCP_Ripper {
             failureList.Visibility = Visibility.Hidden;
             StringBuilder failures = new StringBuilder();
             foreach (string composition in compositions) {
-                processLabel.Content = string.Format("Processing {0}...", composition.Substring(composition.LastIndexOf("\\") + 1));
+                string title = Finder.GetCPLTitle(composition);
+                processLabel.Content = string.Format("Processing {0}...", title);
                 Processor processor = new Processor(ffmpegPath, composition) {
                     VideoFormat = ((ComboBoxItem)format.SelectedItem).Name.StartsWith("x265") ? "libx265" : "libx264",
                     ChromaSubsampling = ((ComboBoxItem)format.SelectedItem).Name.Contains("420"),
@@ -118,15 +119,19 @@ namespace DCP_Ripper {
                     processor.CRF3D = processor.CRF;
                 else
                     processor.CRF3D = int.Parse(((ComboBoxItem)crf3d.SelectedItem).Name.Split('_')[0].Substring(3));
-                string finalOutput = outputPath;
-                if (!string.IsNullOrEmpty(outputPath) && outputPath.Equals(parentMarker)) {
-                    finalOutput = composition.Substring(0, composition.LastIndexOf('\\', composition.Length - 1));
-                    finalOutput = finalOutput.Substring(0, finalOutput.LastIndexOf('\\', finalOutput.Length - 1));
-                }
-                if (processor.ProcessComposition(downscale.IsChecked.Value, finalOutput))
+                string finalOutput = outputPath, sourceFolder = composition.Substring(0, composition.LastIndexOf('\\'));
+                if (!string.IsNullOrEmpty(outputPath) && outputPath.Equals(parentMarker))
+                    finalOutput = sourceFolder.Substring(0, sourceFolder.LastIndexOf('\\'));
+                if (processor.ProcessComposition(downscale.IsChecked.Value, finalOutput)) {
                     ++finished;
-                else
-                    failures.AppendLine(Finder.GetCPLTitle(composition));
+                    if (zipAfter.IsChecked.Value) {
+                        processLabel.Content = string.Format("Zipping {0}...", title);
+                        Finder.ZipAssets(sourceFolder, string.Format("{0}\\{1}.zip", finalOutput, title));
+                    }
+                    if (deleteAfter.IsChecked.Value)
+                        Finder.DeleteAssets(sourceFolder);
+                } else
+                    failures.AppendLine(title);
             }
             if (finished == compositions.Count)
                 processLabel.Content = "Finished!";
