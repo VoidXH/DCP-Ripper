@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -15,6 +16,7 @@ namespace DCP_Ripper {
         const string parentMarker = "parent";
         List<string> compositions = new List<string>();
         string ffmpegPath;
+        string failedContent;
 
         /// <summary>
         /// Forced content output path. Null means default (next to video files), <see cref="parentMarker"/> means its parent.
@@ -24,7 +26,10 @@ namespace DCP_Ripper {
         /// <summary>
         /// Window constructor.
         /// </summary>
-        public MainWindow() => InitializeComponent();
+        public MainWindow() {
+            InitializeComponent();
+            failureList.Visibility = Visibility.Hidden;
+        }
 
         void CheckFFmpeg(string dir) {
             if (start.IsEnabled = File.Exists(ffmpegPath = dir + "\\ffmpeg.exe"))
@@ -97,6 +102,8 @@ namespace DCP_Ripper {
 
         void Start_Click(object sender, RoutedEventArgs e) {
             int finished = 0;
+            failureList.Visibility = Visibility.Hidden;
+            StringBuilder failures = new StringBuilder();
             foreach (string composition in compositions) {
                 processLabel.Content = string.Format("Processing {0}...", composition.Substring(composition.LastIndexOf("\\") + 1));
                 Processor processor = new Processor(ffmpegPath, composition) {
@@ -116,12 +123,16 @@ namespace DCP_Ripper {
                 }
                 if (processor.ProcessComposition(downscale.IsChecked.Value, finalOutput))
                     ++finished;
+                else
+                    failures.AppendLine(Finder.GetCPLTitle(composition));
             }
             if (finished == compositions.Count)
                 processLabel.Content = "Finished!";
             else {
                 int failureCount = compositions.Count - finished;
                 processLabel.Content = string.Format("Finished with {0} failure{1}!", failureCount, failureCount > 1 ? "s" : string.Empty);
+                failedContent = failures.ToString();
+                failureList.Visibility = Visibility.Visible;
             }
         }
 
@@ -154,6 +165,8 @@ namespace DCP_Ripper {
                     outputParent.IsChecked = true;
             }
         }
+
+        void FailureList_Click(object sender, RoutedEventArgs e) => MessageBox.Show(failedContent, "Failed contents");
 
         void Window_Closed(object sender, System.EventArgs e) {
             Settings.Default.format = ((ComboBoxItem)format.SelectedItem).Name;

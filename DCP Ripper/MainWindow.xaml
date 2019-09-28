@@ -77,6 +77,7 @@
                 <RadioButton x:Name="outputDefault" Content="Content folder" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top" GroupName="outputLocation" IsChecked="True" Checked="OutputDefault_Checked"/>
                 <RadioButton x:Name="outputParent" Content="Parent folder" HorizontalAlignment="Left" Margin="10,86,0,0" VerticalAlignment="Top" GroupName="outputLocation" Checked="OutputParent_Checked" IsChecked="True"/>
                 <RadioButton x:Name="outputCustom" Content="Custom" HorizontalAlignment="Left" Margin="10,106,0,0" VerticalAlignment="Top" GroupName="outputLocation"/>
+                <Button x:Name="failureList" Content="..." HorizontalAlignment="Right" Margin="0,0,10,13" VerticalAlignment="Bottom" Width="20" Click="FailureList_Click"/>
             </Grid>
         </GroupBox>
         <Button x:Name="aboutLink" Content="by VoidX" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="75" Click="AboutLink_Click" Grid.Column="2"/>
