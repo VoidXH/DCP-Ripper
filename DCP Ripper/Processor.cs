@@ -260,10 +260,13 @@ namespace DCP_Ripper {
             if (File.Exists(fileName))
                 return fileName;
 #endif
+            int actualFramerate = content.framerate;
+            if (content.is3D)
+                actualFramerate /= 2;
             return LaunchFFmpeg(string.Format("-i \"{0}\" -ss {1} -t {2} -c:a {3} -v error -stats \"{4}\"",
                 content.audioFile,
-                (content.audioStartFrame / (float)content.framerate).ToString("0.000").Replace(',', '.'),
-                (content.duration / (float)content.framerate).ToString("0.000").Replace(',', '.'),
+                (content.audioStartFrame / (float)actualFramerate).ToString("0.000").Replace(',', '.'),
+                (content.duration / (float)actualFramerate).ToString("0.000").Replace(',', '.'),
                 AudioFormat,
                 fileName)) ? fileName : null;
         }
