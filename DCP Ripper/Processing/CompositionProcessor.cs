@@ -4,11 +4,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Xml;
 
-namespace DCP_Ripper {
+namespace DCP_Ripper.Processing {
     /// <summary>
     /// Rips a composition.
     /// </summary>
-    public class Processor {
+    public class CompositionProcessor {
         /// <summary>
         /// Composition title.
         /// </summary>
@@ -100,7 +100,7 @@ namespace DCP_Ripper {
         /// <summary>
         /// Load a composition for processing.
         /// </summary>
-        public Processor(string ffmpegPath, string cplPath) {
+        public CompositionProcessor(string ffmpegPath, string cplPath) {
             this.ffmpegPath = ffmpegPath;
             string directory = cplPath.Substring(0, cplPath.LastIndexOf('\\') + 1);
             Dictionary<string, string> assets = ParseAssetMap(directory);

@@ -1,8 +1,8 @@
-﻿using DCP_Ripper.Properties;
+﻿using DCP_Ripper.Processing;
+using DCP_Ripper.Properties;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -13,9 +13,24 @@ namespace DCP_Ripper {
     /// Interaction logic for MainWindow.xaml.
     /// </summary>
     public partial class MainWindow : Window { // TODO: async process
-        const string parentMarker = "parent";
+        /// <summary>
+        /// Marks the content parent folder for output path.
+        /// </summary>
+        public const string parentMarker = "parent";
+
+        /// <summary>
+        /// List of composition files in the selected folder.
+        /// </summary>
         List<string> compositions = new List<string>();
+
+        /// <summary>
+        /// Launch location of ffmpeg.exe.
+        /// </summary>
         string ffmpegPath;
+
+        /// <summary>
+        /// List of content that could not be processed.
+        /// </summary>
         string failedContent;
 
         /// <summary>
@@ -103,42 +118,22 @@ namespace DCP_Ripper {
         void MatchCRF_Unchecked(object sender, RoutedEventArgs e) => crf3d.IsEnabled = true;
 
         void Start_Click(object sender, RoutedEventArgs e) {
-            int finished = 0;
             failureList.Visibility = Visibility.Hidden;
-            StringBuilder failures = new StringBuilder();
-            foreach (string composition in compositions) {
-                string title = Finder.GetCPLTitle(composition);
-                processLabel.Content = string.Format("Processing {0}...", title);
-                Processor processor = new Processor(ffmpegPath, composition) {
-                    VideoFormat = ((ComboBoxItem)format.SelectedItem).Name.StartsWith("x265") ? "libx265" : "libx264",
-                    ChromaSubsampling = ((ComboBoxItem)format.SelectedItem).Name.Contains("420"),
-                    CRF = int.Parse(((ComboBoxItem)crf.SelectedItem).Name.Substring(3)),
-                    AudioFormat = ((ComboBoxItem)audio.SelectedItem).Name
-                };
-                if (matchCRF.IsChecked.Value)
-                    processor.CRF3D = processor.CRF;
-                else
-                    processor.CRF3D = int.Parse(((ComboBoxItem)crf3d.SelectedItem).Name.Split('_')[0].Substring(3));
-                string finalOutput = outputPath, sourceFolder = composition.Substring(0, composition.LastIndexOf('\\'));
-                if (!string.IsNullOrEmpty(outputPath) && outputPath.Equals(parentMarker))
-                    finalOutput = sourceFolder.Substring(0, sourceFolder.LastIndexOf('\\'));
-                if (processor.ProcessComposition(downscale.IsChecked.Value, finalOutput)) {
-                    ++finished;
-                    if (zipAfter.IsChecked.Value) {
-                        processLabel.Content = string.Format("Zipping {0}...", title);
-                        Finder.ZipAssets(sourceFolder, string.Format("{0}\\{1}.zip", finalOutput, title));
-                    }
-                    if (deleteAfter.IsChecked.Value)
-                        Finder.DeleteAssets(sourceFolder);
-                } else
-                    failures.AppendLine(title);
-            }
+            string videoFormat = ((ComboBoxItem)format.SelectedItem).Name.StartsWith("x265") ? "libx265" : "libx264";
+            int crfTarget = int.Parse(((ComboBoxItem)crf.SelectedItem).Name.Substring(3));
+            int crf3dTarget = crfTarget;
+            if (matchCRF.IsChecked.Value)
+                crf3dTarget = int.Parse(((ComboBoxItem)crf3d.SelectedItem).Name.Split('_')[0].Substring(3));
+            ListProcessor processor = new ListProcessor(compositions);
+            int finished = processor.Process(ffmpegPath, outputPath, videoFormat, ((ComboBoxItem)format.SelectedItem).Name.Contains("420"),
+                crfTarget, crf3dTarget, ((ComboBoxItem)audio.SelectedItem).Name, downscale.IsChecked.Value,
+                zipAfter.IsChecked.Value, deleteAfter.IsChecked.Value);
             if (finished == compositions.Count)
                 processLabel.Content = "Finished!";
             else {
                 int failureCount = compositions.Count - finished;
                 processLabel.Content = string.Format("Finished with {0} failure{1}!", failureCount, failureCount > 1 ? "s" : string.Empty);
-                failedContent = failures.ToString();
+                failedContent = processor.GetFailedContents();
                 failureList.Visibility = Visibility.Visible;
             }
         }

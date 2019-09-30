@@ -2,19 +2,61 @@
 using System.Windows.Media;
 
 namespace DCP_Ripper {
+    /// <summary>
+    /// Get all available information about a composition from DCNC-compatible file names.
+    /// </summary>
     public class CompositionInfo {
+        /// <summary>
+        /// Complete title.
+        /// </summary>
         public string Title { get; set; }
+        /// <summary>
+        /// Content type.
+        /// </summary>
         public ContentType Type { get; set; }
+        /// <summary>
+        /// Unconventional content modifiers.
+        /// </summary>
         public string Modifiers { get; set; }
+        /// <summary>
+        /// Framing name and aspect ratio.
+        /// </summary>
         public Framing AspectRatio { get; set; }
+        /// <summary>
+        /// Content language.
+        /// </summary>
         public string Language { get; set; }
+        /// <summary>
+        /// Distribution area.
+        /// </summary>
         public string Territory { get; set; }
+        /// <summary>
+        /// Main audio track format.
+        /// </summary>
         public AudioTrack Audio { get; set; }
+        /// <summary>
+        /// Video width.
+        /// </summary>
         public Resolution Resolution { get; set; }
+        /// <summary>
+        /// Content creator.
+        /// </summary>
         public string Studio { get; set; }
+        /// <summary>
+        /// Creation date.
+        /// </summary>
         public DateTime Creation { get; set; }
+        /// <summary>
+        /// DCP creator.
+        /// </summary>
         public string Facility { get; set; }
+        /// <summary>
+        /// Used DCP standard.
+        /// </summary>
         public string Standard { get; set; }
+        /// <summary>
+        /// Original version or version file.
+        /// </summary>
         public Version PackageType { get; set; }
 
         // Enum cache
@@ -22,6 +64,9 @@ namespace DCP_Ripper {
         static readonly string[] aspects = Enum.GetNames(typeof(Framing));
         static readonly string[] versions = Enum.GetNames(typeof(Version));
 
+        /// <summary>
+        /// Parse a DCNC file name.
+        /// </summary>
         public CompositionInfo(string title) {
             Title = title;
             string[] modifiers = title.Split('_');
@@ -51,6 +96,9 @@ namespace DCP_Ripper {
                 Territory = "XX";
         }
 
+        /// <summary>
+        /// Parse a modifier into an enumeration if it contains a matching value.
+        /// </summary>
         static bool TryParseEnum<T>(string modifier, string[] modifiers, out T output) where T : struct {
             int splitPos = modifier.IndexOf('-');
             if (splitPos != -1)
@@ -68,6 +116,9 @@ namespace DCP_Ripper {
             return false;
         }
 
+        /// <summary>
+        /// Parse a modifier as an audio format.
+        /// </summary>
         static bool TryParseAudio(string modifier, out AudioTrack track) {
             track = AudioTrack.Unknown;
             modifier = modifier.ToLower();
@@ -85,6 +136,9 @@ namespace DCP_Ripper {
             return track != AudioTrack.Unknown;
         }
 
+        /// <summary>
+        /// Parse a modifier as content type and separate unconventional modifiers.
+        /// </summary>
         static bool TryParseContentType(string modifier, out ContentType contentType, out string modifiers) {
             modifiers = string.Empty;
             if (modifier.Length >= 3) {
@@ -104,6 +158,9 @@ namespace DCP_Ripper {
             return false;
         }
 
+        /// <summary>
+        /// Check if a modifier represents language information.
+        /// </summary>
         static bool IsLanguage(string modifier) {
             int firstSplit = modifier.IndexOf('-');
             if (firstSplit == -1) return false;
@@ -111,7 +168,10 @@ namespace DCP_Ripper {
             return firstSplit <= 3 && (secondSplit != -1 ? secondSplit : modifier.Length) - firstSplit <= 4;
         }
 
-        public Brush GetBrush() {
+        /// <summary>
+        /// Get a brush color for background by content type.
+        /// </summary>
+        public Brush GetBrush() { // TODO: brush caching
             string contentType = Type.ToString();
             int mul = 255 / ('Z' - 'A');
             Color tint = Color.FromArgb(63,

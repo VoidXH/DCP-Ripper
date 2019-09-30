@@ -75,6 +75,7 @@
     </Compile>
     <Compile Include="CompositionInfo.cs" />
     <Compile Include="Enums.cs" />
+    <Compile Include="Processing\ListProcessor.cs" />
     <Compile Include="Reel.cs" />
     <Compile Include="Finder.cs" />
     <Compile Include="MainWindow.xaml.cs">
@@ -83,7 +84,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Processor.cs" />
+    <Compile Include="Processing\CompositionProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

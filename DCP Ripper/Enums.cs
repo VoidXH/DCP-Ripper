@@ -1,16 +1,55 @@
 ﻿namespace DCP_Ripper {
+    /// <summary>
+    /// Content category.
+    /// </summary>
     public enum ContentType {
+        /// <summary>
+        /// No data for content type in the title.
+        /// </summary>
         UNK_Unknown,
+        /// <summary>
+        /// Full movie.
+        /// </summary>
         FTR_Feature,
+        /// <summary>
+        /// Short movie.
+        /// </summary>
         SHR_Short,
+        /// <summary>
+        /// Movie trailer. TV trailers should be <see cref="ADV_Advertisement"/>.
+        /// </summary>
         TLR_Trailer,
+        /// <summary>
+        /// Test clip.
+        /// </summary>
         TST_Test,
+        /// <summary>
+        /// Transitional clip ("wish"), includes Digital Black for spacing.
+        /// </summary>
         XSN_Transitional,
+        /// <summary>
+        /// Pre-content rating tag.
+        /// </summary>
         RTG_RatingTag,
+        /// <summary>
+        /// Short movie trailer.
+        /// </summary>
         TSR_Teaser,
+        /// <summary>
+        /// Local theatre rules (like "turn off your phones").
+        /// </summary>
         POL_Policy,
+        /// <summary>
+        /// Government or charity advertisements.
+        /// </summary>
         PSA_PublicServiceAnnouncement,
+        /// <summary>
+        /// Promotion content other than <see cref="TLR_Trailer"/>, <see cref="TSR_Teaser"/>, or <see cref="PRO_Promotion"/>.
+        /// </summary>
         ADV_Advertisement,
+        /// <summary>
+        /// Non-trailer promotions for movies that are usually shown at conventions.
+        /// </summary>
         PRO_Promotion
     }
 
@@ -19,7 +58,7 @@
     /// </summary>
     public enum Framing {
         /// <summary>
-        /// Not defined
+        /// No data for framing in the title.
         /// </summary>
         _Unknown,
         /// <summary>
@@ -68,28 +107,85 @@
         _C_FullContainer
     }
 
+    /// <summary>
+    /// Frame width.
+    /// </summary>
     public enum Resolution {
+        /// <summary>
+        /// No data for frame width in the title.
+        /// </summary>
         _Unknown,
+        /// <summary>
+        /// 2048 pixels.
+        /// </summary>
         _2K,
+        /// <summary>
+        /// 4096 pixels.
+        /// </summary>
         _4K
     }
 
+    /// <summary>
+    /// Master audio track type.
+    /// </summary>
     public enum AudioTrack {
+        /// <summary>
+        /// No data for audio track in the title.
+        /// </summary>
         Unknown,
+        /// <summary>
+        /// Left and right channels only.
+        /// </summary>
         Stereo,
+        /// <summary>
+        /// 5.1 (side) surround sound.
+        /// </summary>
         Surround__5_1,
+        /// <summary>
+        /// 7.1 (side/rear) surround sound.
+        /// </summary>
         Surround__7_1,
+        /// <summary>
+        /// Sony Dynamic Digital Sound 7.1 (front/side). Use Cavern for remixing.
+        /// </summary>
         SDDS,
+        /// <summary>
+        /// Dolby Atmos companion track next to an original 5.1 or 7.1 track. Use Cavern for sync stream removal.
+        /// </summary>
         Atmos,
+        /// <summary>
+        /// Barco Auro track embedded for active decoding in a 5.1 or 7.1 track.
+        /// </summary>
         Auro,
+        /// <summary>
+        /// Barco AuroMax companion track next to an original Auro 11.1 or 13.1 track. Use Cavern for downmix.
+        /// </summary>
         AuroMax,
+        /// <summary>
+        /// DTS:X audio track.
+        /// </summary>
         DTS___X,
+        /// <summary>
+        /// Raw Cavern 9.1 surround sound.
+        /// </summary>
         Cavern,
+        /// <summary>
+        /// Raw Cavern 10.1 surround sound including bottom surround.
+        /// </summary>
         CavernXL,
     }
 
+    /// <summary>
+    /// Content format.
+    /// </summary>
     public enum Version {
+        /// <summary>
+        /// Base DCP.
+        /// </summary>
         _OV_OriginalVersion,
+        /// <summary>
+        /// Override DCP.
+        /// </summary>
         _VF_VersionFile
     }
 }
