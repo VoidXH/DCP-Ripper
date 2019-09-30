@@ -7,52 +7,104 @@ namespace DCP_Ripper.Processing {
     /// </summary>
     public class ListProcessor {
         /// <summary>
+        /// Marks the content parent folder for output path.
+        /// </summary>
+        public const string parentMarker = "parent";
+
+        /// <summary>
         /// The list of compositions to process.
         /// </summary>
-        public List<string> Compositions { get; private set; }
+        public List<string> Compositions { get; set; }
 
         /// <summary>
         /// Operation status.
         /// </summary>
         public string Status { get; private set; } = "Ready.";
 
+        /// <summary>
+        /// Launch location of ffmpeg.exe.
+        /// </summary>
+        public string FFmpegPath { get; set; } = null;
+
+        /// <summary>
+        /// Forced content output path. Null means default (next to video files), <see cref="parentMarker"/> means its parent.
+        /// </summary>
+        public string OutputPath { get; set; } = null;
+
+        /// <summary>
+        /// Video codec name for FFmpeg.
+        /// </summary>
+        public string VideoFormat { get; set; } = "libx265";
+
+        /// <summary>
+        /// Use chroma subsampling.
+        /// </summary>
+        public bool ChromaSubsampling { get; set; } = false;
+
+        /// <summary>
+        /// Constant Rate Factor for AVC/HEVC codecs.
+        /// </summary>
+        public int CRF { get; set; } = 23;
+
+        /// <summary>
+        /// Constant Rate Factor for AVC/HEVC codecs when ripping 3D content.
+        /// </summary>
+        public int CRF3D { get; set; } = 18;
+
+        /// <summary>
+        /// Audio codec name for FFmpeg.
+        /// </summary>
+        public string AudioFormat { get; set; } = "libopus";
+
+        /// <summary>
+        /// Downscale 4K content to 2K.
+        /// </summary>
+        public bool Force2K { get; set; } = true;
+
+        /// <summary>
+        /// Zip the composition after conversion.
+        /// </summary>
+        public bool ZipAfter { get; set; } = false;
+
+        /// <summary>
+        /// Delete the composition after conversion.
+        /// </summary>
+        public bool DeleteAfter { get; set; } = false;
+
+        /// <summary>
+        /// List of failed content.
+        /// </summary>
         StringBuilder failures;
 
         /// <summary>
-        /// Create a processor for a list of compositions.
+        /// Start processing the compositions.
         /// </summary>
-        public ListProcessor(List<string> compositions) {
-            Compositions = compositions;
-        }
-
-        /// <summary>
-        /// Start processing the compositions. Returns the number of successful conversions.
-        /// </summary>
-        /// <returns></returns>
-        public int Process(string ffmpegPath, string outputPath, string videoFormat, bool subsampling, int crf, int crf3d,
-            string audioFormat, bool force2K, bool zip, bool delete) {
+        /// <returns>Nnumber of successful conversions</returns>
+        public int Process() {
+            if (Compositions == null || FFmpegPath == null)
+                return 0;
             int finished = 0;
             failures = new StringBuilder();
             foreach (string composition in Compositions) {
                 string title = Finder.GetCPLTitle(composition);
                 Status = string.Format("Processing {0}...", title);
-                CompositionProcessor processor = new CompositionProcessor(ffmpegPath, composition) {
-                    VideoFormat = videoFormat,
-                    ChromaSubsampling = subsampling,
-                    CRF = crf,
-                    CRF3D = crf3d,
-                    AudioFormat = audioFormat,
+                CompositionProcessor processor = new CompositionProcessor(FFmpegPath, composition) {
+                    VideoFormat = VideoFormat,
+                    ChromaSubsampling = ChromaSubsampling,
+                    CRF = CRF,
+                    CRF3D = CRF3D,
+                    AudioFormat = AudioFormat
                 };
-                string finalOutput = outputPath, sourceFolder = composition.Substring(0, composition.LastIndexOf('\\'));
-                if (!string.IsNullOrEmpty(outputPath) && outputPath.Equals(MainWindow.parentMarker))
+                string finalOutput = OutputPath, sourceFolder = composition.Substring(0, composition.LastIndexOf('\\'));
+                if (!string.IsNullOrEmpty(OutputPath) && OutputPath.Equals(parentMarker))
                     finalOutput = sourceFolder.Substring(0, sourceFolder.LastIndexOf('\\'));
-                if (processor.ProcessComposition(force2K, finalOutput)) {
+                if (processor.ProcessComposition(Force2K, finalOutput)) {
                     ++finished;
-                    if (zip) {
+                    if (ZipAfter) {
                         Status = string.Format("Zipping {0}...", title);
                         Finder.ZipAssets(sourceFolder, string.Format("{0}\\{1}.zip", finalOutput, title));
                     }
-                    if (delete)
+                    if (DeleteAfter)
                         Finder.DeleteAssets(sourceFolder);
                 } else
                     failures.AppendLine(title);

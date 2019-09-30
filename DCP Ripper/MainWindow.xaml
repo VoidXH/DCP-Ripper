@@ -29,13 +29,13 @@
         <GroupBox x:Name="qualityBox" Grid.Column="1" Header="Quality" HorizontalAlignment="Left" Height="196" Margin="10,10,0,0" VerticalAlignment="Top" Width="231">
             <Grid>
                 <Label x:Name="formatLabel" Content="Format:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                <ComboBox x:Name="format" HorizontalAlignment="Right" Width="143" Margin="0,12,10,0" VerticalAlignment="Top">
+                <ComboBox x:Name="format" HorizontalAlignment="Right" Width="143" Margin="0,12,10,0" VerticalAlignment="Top" SelectionChanged="Format_SelectionChanged">
                     <ComboBoxItem Name="x265_444" Content="HEVC RExt 4:4:4" IsSelected="True"/>
                     <ComboBoxItem Name="x265_420" Content="HEVC 4:2:0"/>
                     <ComboBoxItem Name="x264_420" Content="AVC 4:2:0"/>
                 </ComboBox>
                 <Label x:Name="crfLabel" Content="CRF:" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top"/>
-                <ComboBox x:Name="crf" HorizontalAlignment="Right" Width="160" Margin="0,43,10,0" VerticalAlignment="Top">
+                <ComboBox x:Name="crf" HorizontalAlignment="Right" Width="160" Margin="0,43,10,0" VerticalAlignment="Top" SelectionChanged="CRF_SelectionChanged">
                     <ComboBoxItem Name="crf0" Content="0 (lossless)"/>
                     <ComboBoxItem Name="crf13" Content="13 (practially lossless)"/>
                     <ComboBoxItem Name="crf18" Content="18 (transparent, 3D recommended)"/>
@@ -46,7 +46,7 @@
                 </ComboBox>
                 <CheckBox x:Name="matchCRF" Content="Use same CRF for 3D content" HorizontalAlignment="Left" Margin="10,72,0,0" VerticalAlignment="Top" Checked="MatchCRF_Checked" Unchecked="MatchCRF_Unchecked"/>
                 <Label x:Name="crf3dLabel" Content="3D CRF:" HorizontalAlignment="Left" Margin="10,92,0,0" VerticalAlignment="Top"/>
-                <ComboBox x:Name="crf3d" HorizontalAlignment="Right" Width="143" Margin="0,94,10,0" VerticalAlignment="Top">
+                <ComboBox x:Name="crf3d" HorizontalAlignment="Right" Width="143" Margin="0,94,10,0" VerticalAlignment="Top" SelectionChanged="CRF3D_SelectionChanged">
                     <ComboBoxItem Name="crf0_3d" Content="0 (lossless)"/>
                     <ComboBoxItem Name="crf8_3d" Content="8 (practially lossless)"/>
                     <ComboBoxItem Name="crf13_3d" Content="13 (transparent)"/>
@@ -57,7 +57,7 @@
                     <ComboBoxItem Name="crf51_3d" Content="51 (lowest quality)"/>
                 </ComboBox>
                 <Label x:Name="audioLabel" Content="Audio:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,121,0,0"/>
-                <ComboBox x:Name="audio" HorizontalAlignment="Right" Width="149" Margin="0,123,10,0" VerticalAlignment="Top">
+                <ComboBox x:Name="audio" HorizontalAlignment="Right" Width="149" Margin="0,123,10,0" VerticalAlignment="Top" SelectionChanged="Audio_SelectionChanged">
                     <ComboBoxItem Name="aac" Content="AAC (low quality, small, 5.1 only)"/>
                     <ComboBoxItem Name="libvorbis" Content="Vorbis (high quality, small)"/>
                     <ComboBoxItem Name="libopus" Content="Opus (transparent, small)" IsSelected="True"/>
@@ -65,7 +65,7 @@
                     <ComboBoxItem Name="flac" Content="FLAC (lossless, large)"/>
                     <ComboBoxItem Name="pcm_s24le" Content="PCM 24 bit (raw, largest)"/>
                 </ComboBox>
-                <CheckBox x:Name="downscale" Content="Downscale 4K content to 2K" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,152,0,0"/>
+                <CheckBox x:Name="downscale" Content="Downscale 4K content to 2K" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,152,0,0" Checked="Downscale_Checked" Unchecked="Downscale_Unchecked"/>
             </Grid>
         </GroupBox>
         <GroupBox x:Name="processBox" Grid.Column="2" Header="Process" HorizontalAlignment="Left" Height="241" Margin="10,10,0,0" VerticalAlignment="Top" Width="230">
@@ -78,9 +78,9 @@
                 <RadioButton x:Name="outputParent" Content="Parent folder" HorizontalAlignment="Left" Margin="10,86,0,0" VerticalAlignment="Top" GroupName="outputLocation" Checked="OutputParent_Checked" IsChecked="True"/>
                 <RadioButton x:Name="outputCustom" Content="Custom" HorizontalAlignment="Left" Margin="10,106,0,0" VerticalAlignment="Top" GroupName="outputLocation"/>
                 <Button x:Name="failureList" Content="..." HorizontalAlignment="Right" Margin="0,0,10,13" VerticalAlignment="Bottom" Width="20" Click="FailureList_Click"/>
-                <CheckBox x:Name="zipAfter" Content="Zip" HorizontalAlignment="Left" Margin="10,157,0,0" VerticalAlignment="Top"/>
+                <CheckBox x:Name="zipAfter" Content="Zip" HorizontalAlignment="Left" Margin="10,157,0,0" VerticalAlignment="Top" Checked="ZipAfter_Checked" Unchecked="ZipAfter_Unchecked"/>
                 <Label x:Name="afterLabel" Content="After completion:" HorizontalAlignment="Left" Margin="10,126,0,0" VerticalAlignment="Top"/>
-                <CheckBox x:Name="deleteAfter" Content="Delete" HorizontalAlignment="Left" Margin="61,157,0,0" VerticalAlignment="Top"/>
+                <CheckBox x:Name="deleteAfter" Content="Delete" HorizontalAlignment="Left" Margin="61,157,0,0" VerticalAlignment="Top" Checked="DeleteAfter_Checked" Unchecked="DeleteAfter_Unchecked"/>
             </Grid>
         </GroupBox>
         <Button x:Name="aboutLink" Content="by VoidX" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="75" Click="AboutLink_Click" Grid.Column="2"/>
