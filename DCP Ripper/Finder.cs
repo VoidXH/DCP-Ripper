@@ -42,7 +42,13 @@ namespace DCP_Ripper {
         /// Checks a folder and its subfolders for composition playlist files.
         /// </summary>
         static void ProcessFolder(string path, List<string> collection) {
-            string[] files = Directory.GetFiles(path), dirs = Directory.GetDirectories(path);
+            string[] files, dirs;
+            try {
+                files = Directory.GetFiles(path);
+                dirs = Directory.GetDirectories(path);
+            } catch {
+                return;
+            }
             foreach (string file in files)
                 if (IsCPL(file))
                     collection.Add(file);
