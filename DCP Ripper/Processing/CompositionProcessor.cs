@@ -236,6 +236,8 @@ namespace DCP_Ripper.Processing {
             if (LaunchFFmpeg(string.Format("-i \"{0}\" -i \"{1}\" -filter_complex [0:v][1:v]hstack=inputs=2[v] -map [v] " +
                 "-c:v {2} -crf {3} -v error -stats \"{4}\"",
                 leftFile, rightFile, VideoFormat, CRF3D, fileName))) {
+                if (!File.Exists(fileName))
+                    return null;
                 File.Delete(leftFile);
                 File.Delete(rightFile);
                 return fileName;
