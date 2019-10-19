@@ -84,6 +84,8 @@ namespace DCP_Ripper {
 
         void OpenFolder_Click(object sender, RoutedEventArgs e) {
             using (var dialog = new FolderBrowserDialog()) {
+                if (Directory.Exists(Settings.Default.lastOpenFolder))
+                    dialog.SelectedPath = Settings.Default.lastOpenFolder;
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
                     OpenFolder(dialog.SelectedPath);
                     Settings.Default.lastOpenFolder = dialog.SelectedPath;
