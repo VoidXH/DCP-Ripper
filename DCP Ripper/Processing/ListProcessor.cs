@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -109,6 +110,8 @@ namespace DCP_Ripper.Processing {
             int finished = 0;
             failures = new StringBuilder();
             foreach (string composition in Compositions) {
+                if (!File.Exists(composition))
+                    continue;
                 string title = Finder.GetCPLTitle(composition);
                 OnStatusUpdate?.Invoke(string.Format("Processing {0}...", title));
                 CompositionProcessor processor = new CompositionProcessor(FFmpegPath, composition) {
