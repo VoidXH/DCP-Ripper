@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DCP_Ripper.Processing {
     /// <summary>
@@ -15,11 +16,6 @@ namespace DCP_Ripper.Processing {
         /// The list of compositions to process.
         /// </summary>
         public List<string> Compositions { get; set; }
-
-        /// <summary>
-        /// Operation status.
-        /// </summary>
-        public string Status { get; private set; } = "Ready.";
 
         /// <summary>
         /// Launch location of ffmpeg.exe.
@@ -72,14 +68,41 @@ namespace DCP_Ripper.Processing {
         public bool DeleteAfter { get; set; } = false;
 
         /// <summary>
+        /// Process state update.
+        /// </summary>
+        /// <param name="status">Current job</param>
+        public delegate void StatusUpdate(string status);
+
+        /// <summary>
+        /// Called when a new job is started.
+        /// </summary>
+        public event StatusUpdate OnStatusUpdate;
+
+        /// <summary>
+        /// Process completion delegate.
+        /// </summary>
+        /// <param name="finished">Number of successful conversions</param>
+        public delegate void AfterProcess(int finished);
+
+        /// <summary>
+        /// Called when list processing is finished.
+        /// </summary>
+        public event AfterProcess OnCompletion;
+
+        /// <summary>
         /// List of failed content.
         /// </summary>
         StringBuilder failures;
 
         /// <summary>
+        /// Async <see cref="Process"/> handler.
+        /// </summary>
+        Task<int> task;
+
+        /// <summary>
         /// Start processing the compositions.
         /// </summary>
-        /// <returns>Nnumber of successful conversions</returns>
+        /// <returns>Number of successful conversions</returns>
         public int Process() {
             if (Compositions == null || FFmpegPath == null)
                 return 0;
@@ -87,7 +110,7 @@ namespace DCP_Ripper.Processing {
             failures = new StringBuilder();
             foreach (string composition in Compositions) {
                 string title = Finder.GetCPLTitle(composition);
-                Status = string.Format("Processing {0}...", title);
+                OnStatusUpdate?.Invoke(string.Format("Processing {0}...", title));
                 CompositionProcessor processor = new CompositionProcessor(FFmpegPath, composition) {
                     VideoFormat = VideoFormat,
                     ChromaSubsampling = ChromaSubsampling,
@@ -101,7 +124,7 @@ namespace DCP_Ripper.Processing {
                 if (processor.ProcessComposition(Force2K, finalOutput)) {
                     ++finished;
                     if (ZipAfter) {
-                        Status = string.Format("Zipping {0}...", title);
+                        OnStatusUpdate?.Invoke(string.Format("Zipping {0}...", title));
                         Finder.ZipAssets(sourceFolder, string.Format("{0}\\{1}.zip", finalOutput, title));
                     }
                     if (DeleteAfter)
@@ -109,7 +132,21 @@ namespace DCP_Ripper.Processing {
                 } else
                     failures.AppendLine(title);
             }
+            OnStatusUpdate?.Invoke("Finished!");
+            OnCompletion?.Invoke(finished);
             return finished;
+        }
+
+        /// <summary>
+        /// Start processing the compositions as a <see cref="Task"/>.
+        /// </summary>
+        /// <returns>A task with a return value of the number of successful conversions</returns>
+        public Task<int> ProcessAsync() {
+            if (task != null && !task.IsCompleted)
+                return task;
+            task = new Task<int>(Process);
+            task.Start();
+            return task;
         }
 
         /// <summary>

@@ -2,7 +2,6 @@
 using DCP_Ripper.Properties;
 using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -29,6 +28,8 @@ namespace DCP_Ripper {
         public MainWindow() {
             InitializeComponent();
             failureList.Visibility = Visibility.Hidden;
+            processor.OnStatusUpdate += ProcessStatusUpdate;
+            processor.OnCompletion += AfterProcess;
         }
 
         void CheckFFmpeg(string dir) {
@@ -140,19 +141,27 @@ namespace DCP_Ripper {
         void DeleteAfter_Checked(object sender, RoutedEventArgs e) => processor.DeleteAfter = true;
         void DeleteAfter_Unchecked(object sender, RoutedEventArgs e) => processor.DeleteAfter = false;
 
-        void Start_Click(object sender, RoutedEventArgs e) {
+        async void Start_Click(object sender, RoutedEventArgs e) {
             failureList.Visibility = Visibility.Hidden;
-            Task<int> task = new Task<int>(processor.Process);
-            task.Start();
-            task.Wait();
-            if (task.Result == processor.Compositions.Count)
-                processLabel.Content = "Finished!";
-            else {
-                int failureCount = processor.Compositions.Count - task.Result;
-                processLabel.Content = string.Format("Finished with {0} failure{1}!", failureCount, failureCount > 1 ? "s" : string.Empty);
-                failedContent = processor.GetFailedContents();
-                failureList.Visibility = Visibility.Visible;
-            }
+            await processor.ProcessAsync();
+        }
+
+        /// <summary>
+        /// Set the content of <see cref="processLabel"/> from another thread.
+        /// </summary>
+        void ProcessStatusUpdate(string status) => Dispatcher.Invoke(() => processLabel.Content = status);
+
+        /// <summary>
+        /// Called after ripping the selected folder.
+        /// </summary>
+        /// <param name="finished">Number of successful conversions</param>
+        void AfterProcess(int finished) {
+            if (finished == processor.Compositions.Count)
+                return;
+            int failureCount = processor.Compositions.Count - finished;
+            ProcessStatusUpdate(string.Format("Finished with {0} failure{1}!", failureCount, failureCount > 1 ? "s" : string.Empty));
+            failedContent = processor.GetFailedContents();
+            failureList.Visibility = Visibility.Visible;
         }
 
         void LocateFFmpeg_Click(object sender, RoutedEventArgs e) {
