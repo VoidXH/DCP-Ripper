@@ -150,6 +150,8 @@ namespace DCP_Ripper.Processing {
                         case "FrameRate":
                             reader.Read();
                             reel.framerate = int.Parse(reader.Value.Substring(0, reader.Value.IndexOf(' ')));
+                            if (reel.is3D)
+                                reel.framerate /= 2;
                             break;
                         case "Reel":
                             reel = new Reel();
@@ -202,6 +204,7 @@ namespace DCP_Ripper.Processing {
             if (content.videoFile == null || !File.Exists(content.videoFile))
                 return null;
             string videoStart = (content.videoStartFrame / (float)content.framerate).ToString("0.000").Replace(',', '.');
+            string length = (content.duration / (float)content.framerate).ToString("0.000").Replace(',', '.');
             string subsampling = ChromaSubsampling ? "-pix_fmt yuv420p" : string.Empty;
             string fileName = content.videoFile.Replace(".mxf", ".mkv").Replace(".MXF", ".mkv");
 #if DEBUG
@@ -209,28 +212,26 @@ namespace DCP_Ripper.Processing {
                 return fileName;
 #endif
             if (!content.is3D) {
-                string length = (content.duration / (float)content.framerate).ToString("0.000").Replace(',', '.');
                 return LaunchFFmpeg(string.Format("-ss {0} -i \"{1}\" -t {2} -c:v {3} {4} {5} -crf {6} -v error -stats \"{7}\"",
                     videoStart, content.videoFile, length, VideoFormat, subsampling, extraModifiers, CRF, fileName)) ? fileName : null;
             }
-            string doubleRate = "-r " + content.framerate;
+            string doubleRate = "-r " + content.framerate * 2;
             string leftFile = content.videoFile.Replace(".mxf", "_L.mkv").Replace(".MXF", "_L.mkv");
-            string doubleLength = "-t " + (content.duration * 2 / (float)content.framerate).ToString("0.000").Replace(',', '.');
             string lowerCRF = "-crf " + Math.Max(CRF3D - 5, 0);
 #if DEBUG
             if (!File.Exists(leftFile))
 #endif
-            if (!LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" {3} -vf select=\"mod(n-1\\,2)\",scale=iw/2:ih,setsar=1:1 " +
+            if (!LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" -t {3} -vf select=\"mod(n-1\\,2)\",scale=iw/2:ih,setsar=1:1 " +
                 "-c:v {4} {5} -v error -stats \"{6}\"",
-                doubleRate, videoStart, content.videoFile, doubleLength, VideoFormat, lowerCRF, leftFile)))
+                doubleRate, videoStart, content.videoFile, length, VideoFormat, lowerCRF, leftFile)))
                 return null;
             string rightFile = content.videoFile.Replace(".mxf", "_R.mkv").Replace(".MXF", "_R.mkv");
 #if DEBUG
             if (!File.Exists(rightFile))
 #endif
-            if (!LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" {3} -vf select=\"not(mod(n-1\\,2))\",scale=iw/2:ih,setsar=1:1 " +
+            if (!LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" -t {3} -vf select=\"not(mod(n-1\\,2))\",scale=iw/2:ih,setsar=1:1 " +
                 "-c:v {4} {5} -v error -stats \"{6}\"",
-                doubleRate, videoStart, content.videoFile, doubleLength, VideoFormat, lowerCRF, rightFile))) {
+                doubleRate, videoStart, content.videoFile, length, VideoFormat, lowerCRF, rightFile))) {
                 return null;
             }
             if (LaunchFFmpeg(string.Format("-i \"{0}\" -i \"{1}\" -filter_complex [0:v][1:v]hstack=inputs=2[v] -map [v] " +
@@ -252,7 +253,8 @@ namespace DCP_Ripper.Processing {
         public string ProcessVideo2K(Reel content) => ProcessVideo(content, Is4K ? "-vf scale=iw/2:ih/2" : string.Empty);
 
         /// <summary>
-        /// Process the audio file of a content. The created file will have the same name, but in Matroska format, which is the returned value.
+        /// Process the audio file of a content. The created file will have the same name,
+        /// but in Matroska format, which is the returned value.
         /// </summary>
         public string ProcessAudio(Reel content) {
             if (content.audioFile == null || !File.Exists(content.audioFile))
@@ -262,13 +264,10 @@ namespace DCP_Ripper.Processing {
             if (File.Exists(fileName))
                 return fileName;
 #endif
-            int actualFramerate = content.framerate;
-            if (content.is3D)
-                actualFramerate /= 2;
             return LaunchFFmpeg(string.Format("-i \"{0}\" -ss {1} -t {2} -c:a {3} -v error -stats \"{4}\"",
                 content.audioFile,
-                (content.audioStartFrame / (float)actualFramerate).ToString("0.000").Replace(',', '.'),
-                (content.duration / (float)actualFramerate).ToString("0.000").Replace(',', '.'),
+                (content.audioStartFrame / (float)content.framerate).ToString("0.000").Replace(',', '.'),
+                (content.duration / (float)content.framerate).ToString("0.000").Replace(',', '.'),
                 AudioFormat,
                 fileName)) ? fileName : null;
         }
