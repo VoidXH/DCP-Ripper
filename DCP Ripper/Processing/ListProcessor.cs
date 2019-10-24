@@ -49,14 +49,14 @@ namespace DCP_Ripper.Processing {
         public int CRF3D { get; set; } = 18;
 
         /// <summary>
-        /// Audio codec name for FFmpeg.
-        /// </summary>
-        public string AudioFormat { get; set; } = "libopus";
-
-        /// <summary>
         /// Downscale 4K content to 2K.
         /// </summary>
         public bool Force2K { get; set; } = true;
+
+        /// <summary>
+        /// Audio codec name for FFmpeg.
+        /// </summary>
+        public string AudioFormat { get; set; } = "libopus";
 
         /// <summary>
         /// Zip the composition after conversion.

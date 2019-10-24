@@ -34,9 +34,9 @@ namespace DCP_Ripper {
 
         void CheckFFmpeg(string dir) {
             if (start.IsEnabled = File.Exists(processor.FFmpegPath = dir + "\\ffmpeg.exe"))
-                processLabel.Content = "Ready.";
+                processLabel.Text = "Ready.";
             else
-                processLabel.Content = "FFmpeg isn't found, please locate.";
+                processLabel.Text = "FFmpeg isn't found, please locate.";
         }
 
         void ComboBoxSelect(ComboBox source, string value) {
@@ -149,7 +149,7 @@ namespace DCP_Ripper {
         /// <summary>
         /// Set the content of <see cref="processLabel"/> from another thread.
         /// </summary>
-        void ProcessStatusUpdate(string status) => Dispatcher.Invoke(() => processLabel.Content = status);
+        void ProcessStatusUpdate(string status) => Dispatcher.Invoke(() => processLabel.Text = status);
 
         /// <summary>
         /// Called after ripping the selected folder.
