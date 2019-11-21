@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Xml;
+
+using DCP_Ripper.Zipping;
 
 namespace DCP_Ripper {
     /// <summary>
@@ -77,24 +80,34 @@ namespace DCP_Ripper {
                 else
                     hasOutput = true;
             }
-            if (!hasOutput)
+            if (!hasOutput) // TODO: subdirs (for zips too)
                 Directory.Delete(path);
         }
 
         /// <summary>
         /// Zips all assets from a composition.
         /// </summary>
-        public static void ZipAssets(string path, string zipPath) {
+        public static void ZipAssets(string path, string zipPath, Action<string> uiReporter) {
             if (File.Exists(zipPath))
                 return;
             if (!path.EndsWith("\\"))
                 path += '\\';
             using (ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Create)) {
                 string[] allFiles = Directory.GetFiles(path);
-                foreach (string asset in allFiles)
-                    if (!asset.EndsWith(".mkv") && !asset.EndsWith(".zip"))
+                foreach (string asset in allFiles) {
+                    if (!asset.EndsWith(".mkv") && !asset.EndsWith(".zip")) {
                         zip.CreateEntryFromFile(asset, asset.Substring(path.Length),
                             CompressionLevel.Optimal);
+                        string entryName = Path.GetFileName(asset);
+                        ZipArchiveEntry entry = zip.CreateEntry(entryName);
+                        entry.LastWriteTime = DateTime.Now;
+                        using (Stream inputStream = File.OpenRead(asset))
+                        using (Stream outputStream = entry.Open())
+                        using (Stream progressStream = new StreamWithProgress(inputStream,
+                            new FileProgressDisplay(entryName, inputStream.Length, uiReporter), null))
+                                progressStream.CopyTo(outputStream);
+                    }
+                }
             }
         }
 

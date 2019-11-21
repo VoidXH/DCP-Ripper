@@ -128,7 +128,8 @@ namespace DCP_Ripper.Processing {
                     ++finished;
                     if (ZipAfter) {
                         OnStatusUpdate?.Invoke(string.Format("Zipping {0}...", title));
-                        Finder.ZipAssets(sourceFolder, string.Format("{0}\\{1}.zip", finalOutput, title));
+                        Finder.ZipAssets(sourceFolder, string.Format("{0}\\{1}.zip", finalOutput, title),
+                            textOut => OnStatusUpdate(textOut));
                     }
                     if (DeleteAfter)
                         Finder.DeleteAssets(sourceFolder);
