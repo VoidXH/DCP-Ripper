@@ -161,7 +161,7 @@ namespace DCP_Ripper {
             int failureCount = processor.Compositions.Count - finished;
             ProcessStatusUpdate(string.Format("Finished with {0} failure{1}!", failureCount, failureCount > 1 ? "s" : string.Empty));
             failedContent = processor.GetFailedContents();
-            failureList.Visibility = Visibility.Visible;
+            Dispatcher.Invoke(() => failureList.Visibility = Visibility.Visible);
         }
 
         void LocateFFmpeg_Click(object sender, RoutedEventArgs e) {
