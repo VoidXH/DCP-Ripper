@@ -96,8 +96,6 @@ namespace DCP_Ripper {
                 string[] allFiles = Directory.GetFiles(path);
                 foreach (string asset in allFiles) {
                     if (!asset.EndsWith(".mkv") && !asset.EndsWith(".zip")) {
-                        zip.CreateEntryFromFile(asset, asset.Substring(path.Length),
-                            CompressionLevel.Optimal);
                         string entryName = Path.GetFileName(asset);
                         ZipArchiveEntry entry = zip.CreateEntry(entryName);
                         entry.LastWriteTime = DateTime.Now;
