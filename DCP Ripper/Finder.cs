@@ -73,6 +73,9 @@ namespace DCP_Ripper {
         /// </summary>
         public static void DeleteAssets(string path) {
             bool hasOutput = false;
+            string[] directories = Directory.GetDirectories(path);
+            foreach (string subdirectory in directories)
+                DeleteAssets(subdirectory);
             string[] allFiles = Directory.GetFiles(path);
             foreach (string asset in allFiles) {
                 if (!asset.EndsWith(".mkv") && !asset.EndsWith(".zip"))
@@ -80,8 +83,27 @@ namespace DCP_Ripper {
                 else
                     hasOutput = true;
             }
-            if (!hasOutput) // TODO: subdirs (for zips too)
+            if (!hasOutput)
                 Directory.Delete(path);
+        }
+
+        static void AppendFolderToZip(string path, ZipArchive zip, Action<string> uiReporter, string zipPath = "") {
+            string[] directories = Directory.GetDirectories(path);
+            foreach (string subdirectory in directories)
+                AppendFolderToZip(subdirectory, zip, uiReporter, zipPath + subdirectory.Substring(subdirectory.LastIndexOf('\\') + 1) + '\\');
+            string[] allFiles = Directory.GetFiles(path);
+            foreach (string asset in allFiles) {
+                if (!asset.EndsWith(".mkv") && !asset.EndsWith(".zip")) {
+                    string entryName = Path.GetFileName(asset);
+                    ZipArchiveEntry entry = zip.CreateEntry(zipPath + entryName);
+                    entry.LastWriteTime = DateTime.Now;
+                    using (Stream inputStream = File.OpenRead(asset))
+                    using (Stream outputStream = entry.Open())
+                    using (Stream progressStream = new StreamWithProgress(inputStream,
+                        new FileProgressDisplay(entryName, inputStream.Length, uiReporter), null))
+                        progressStream.CopyTo(outputStream);
+                }
+            }
         }
 
         /// <summary>
@@ -92,21 +114,8 @@ namespace DCP_Ripper {
                 return;
             if (!path.EndsWith("\\"))
                 path += '\\';
-            using (ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Create)) {
-                string[] allFiles = Directory.GetFiles(path);
-                foreach (string asset in allFiles) {
-                    if (!asset.EndsWith(".mkv") && !asset.EndsWith(".zip")) {
-                        string entryName = Path.GetFileName(asset);
-                        ZipArchiveEntry entry = zip.CreateEntry(entryName);
-                        entry.LastWriteTime = DateTime.Now;
-                        using (Stream inputStream = File.OpenRead(asset))
-                        using (Stream outputStream = entry.Open())
-                        using (Stream progressStream = new StreamWithProgress(inputStream,
-                            new FileProgressDisplay(entryName, inputStream.Length, uiReporter), null))
-                                progressStream.CopyTo(outputStream);
-                    }
-                }
-            }
+            using (ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+                AppendFolderToZip(path, zip, uiReporter);
         }
 
         /// <summary>

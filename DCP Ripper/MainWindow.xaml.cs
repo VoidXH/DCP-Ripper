@@ -11,7 +11,7 @@ namespace DCP_Ripper {
     /// <summary>
     /// Interaction logic for MainWindow.xaml.
     /// </summary>
-    public partial class MainWindow : Window { // TODO: async process
+    public partial class MainWindow : Window {
         /// <summary>
         /// List of content that could not be processed.
         /// </summary>
@@ -156,9 +156,10 @@ namespace DCP_Ripper {
         /// </summary>
         /// <param name="finished">Number of successful conversions</param>
         void AfterProcess(int finished) {
+            int processed = processor.Compositions.Count;
             if (processor.DeleteAfter)
                 Dispatcher.Invoke(() => Refresh_Click(null, null));
-            if (finished == processor.Compositions.Count)
+            if (finished == processed)
                 return;
             int failureCount = processor.Compositions.Count - finished;
             ProcessStatusUpdate(string.Format("Finished with {0} failure{1}!", failureCount, failureCount > 1 ? "s" : string.Empty));
