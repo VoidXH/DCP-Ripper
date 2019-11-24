@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows.Media;
 
 namespace DCP_Ripper {
@@ -63,6 +64,7 @@ namespace DCP_Ripper {
         static readonly string[] contentTypes = Enum.GetNames(typeof(ContentType));
         static readonly string[] aspects = Enum.GetNames(typeof(Framing));
         static readonly string[] versions = Enum.GetNames(typeof(Version));
+        static readonly Dictionary<ContentType, Brush> typeBackgrounds = new Dictionary<ContentType, Brush>();
 
         /// <summary>
         /// Parse a DCNC file name.
@@ -171,14 +173,16 @@ namespace DCP_Ripper {
         /// <summary>
         /// Get a brush color for background by content type.
         /// </summary>
-        public Brush GetBrush() { // TODO: brush caching
+        public Brush GetBrush() {
+            if (typeBackgrounds.ContainsKey(Type))
+                return typeBackgrounds[Type];
             string contentType = Type.ToString();
             int mul = 255 / ('Z' - 'A');
             Color tint = Color.FromArgb(63,
                 (byte)((contentType[0] - 'A') * mul),
                 (byte)((contentType[1] - 'A') * mul),
                 (byte)((contentType[2] - 'A') * mul));
-            return new SolidColorBrush(tint);
+            return typeBackgrounds[Type] = new SolidColorBrush(tint);
         }
     }
 }
