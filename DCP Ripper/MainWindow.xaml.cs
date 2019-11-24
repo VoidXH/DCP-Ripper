@@ -156,6 +156,8 @@ namespace DCP_Ripper {
         /// </summary>
         /// <param name="finished">Number of successful conversions</param>
         void AfterProcess(int finished) {
+            if (processor.DeleteAfter)
+                Dispatcher.Invoke(() => Refresh_Click(null, null));
             if (finished == processor.Compositions.Count)
                 return;
             int failureCount = processor.Compositions.Count - finished;
