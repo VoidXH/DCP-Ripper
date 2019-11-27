@@ -49,6 +49,11 @@ namespace DCP_Ripper.Processing {
         public int CRF3D { get; set; } = 18;
 
         /// <summary>
+        /// 3D ripping mode.
+        /// </summary>
+        public Mode3D StereoMode { get; set; } = Mode3D.HalfSideBySide;
+
+        /// <summary>
         /// Downscale 4K content to 2K.
         /// </summary>
         public bool Force2K { get; set; } = true;
@@ -119,6 +124,7 @@ namespace DCP_Ripper.Processing {
                     ChromaSubsampling = ChromaSubsampling,
                     CRF = CRF,
                     CRF3D = CRF3D,
+                    StereoMode = StereoMode,
                     AudioFormat = AudioFormat
                 };
                 string finalOutput = OutputPath, sourceFolder = composition.Substring(0, composition.LastIndexOf('\\'));

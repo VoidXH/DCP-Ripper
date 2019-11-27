@@ -188,4 +188,22 @@
         /// </summary>
         _VF_VersionFile
     }
+
+    /// <summary>
+    /// 3D content ripping modes.
+    /// </summary>
+    public enum Mode3D {
+        /// <summary>
+        /// Horizontally half resolution stacked left/right eyes.
+        /// </summary>
+        HalfSideBySide,
+        /// <summary>
+        /// 2D output with left eye retain.
+        /// </summary>
+        LeftEye,
+        /// <summary>
+        /// 2D output with right eye retain.
+        /// </summary>
+        RightEye
+    }
 }

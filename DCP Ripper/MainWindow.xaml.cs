@@ -1,5 +1,6 @@
 ﻿using DCP_Ripper.Processing;
 using DCP_Ripper.Properties;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -62,8 +63,9 @@ namespace DCP_Ripper {
             ComboBoxSelect(crf, Settings.Default.crf);
             matchCRF.IsChecked = Settings.Default.matchCRF;
             ComboBoxSelect(crf3d, Settings.Default.crf3d);
-            ComboBoxSelect(audio, Settings.Default.audio);
+            ComboBoxSelect(mode3d, Settings.Default.mode3d);
             downscale.IsChecked = processor.Force2K = Settings.Default.downscale;
+            ComboBoxSelect(audio, Settings.Default.audio);
             zipAfter.IsChecked = processor.ZipAfter = Settings.Default.zipAfter;
             deleteAfter.IsChecked = processor.DeleteAfter = Settings.Default.deleteAftter;
             CheckFFmpeg(Settings.Default.ffmpegLocation);
@@ -80,6 +82,7 @@ namespace DCP_Ripper {
                     break;
             }
             outputCustom.Checked += OutputCustom_Checked;
+            mode3d.SelectionChanged += Mode3D_SelectionChanged;
             Refresh_Click(null, null);
         }
 
@@ -131,11 +134,12 @@ namespace DCP_Ripper {
                 processor.CRF3D = int.Parse(((ComboBoxItem)((ComboBox)sender).SelectedItem).Name.Split('_')[0].Substring(3));
         }
 
-        void Audio_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
-            processor.AudioFormat = ((ComboBoxItem)((ComboBox)sender).SelectedItem).Name;
-
+        void Mode3D_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+            processor.StereoMode = (Mode3D)Enum.Parse(typeof(Mode3D), ((ComboBoxItem)((ComboBox)sender).SelectedItem).Name);
         void Downscale_Checked(object sender, RoutedEventArgs e) => processor.Force2K = true;
         void Downscale_Unchecked(object sender, RoutedEventArgs e) => processor.Force2K = false;
+        void Audio_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+            processor.AudioFormat = ((ComboBoxItem)((ComboBox)sender).SelectedItem).Name;
         void ZipAfter_Checked(object sender, RoutedEventArgs e) => processor.ZipAfter = true;
         void ZipAfter_Unchecked(object sender, RoutedEventArgs e) => processor.ZipAfter = false;
         void DeleteAfter_Checked(object sender, RoutedEventArgs e) => processor.DeleteAfter = true;
@@ -203,8 +207,9 @@ namespace DCP_Ripper {
             Settings.Default.crf = ((ComboBoxItem)crf.SelectedItem).Name;
             Settings.Default.matchCRF = matchCRF.IsChecked.Value;
             Settings.Default.crf3d = ((ComboBoxItem)crf3d.SelectedItem).Name;
-            Settings.Default.audio = ((ComboBoxItem)audio.SelectedItem).Name;
+            Settings.Default.mode3d = ((ComboBoxItem)mode3d.SelectedItem).Name;
             Settings.Default.downscale = processor.Force2K;
+            Settings.Default.audio = ((ComboBoxItem)audio.SelectedItem).Name;
             Settings.Default.outputPath = processor.OutputPath;
             Settings.Default.zipAfter = processor.ZipAfter;
             Settings.Default.deleteAftter = processor.DeleteAfter;

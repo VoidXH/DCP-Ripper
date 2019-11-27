@@ -43,6 +43,11 @@ namespace DCP_Ripper.Processing {
         public int CRF3D { get; set; } = 18;
 
         /// <summary>
+        /// 3D ripping mode.
+        /// </summary>
+        public Mode3D StereoMode { get; set; } = Mode3D.HalfSideBySide;
+
+        /// <summary>
         /// Audio codec name for FFmpeg.
         /// </summary>
         public string AudioFormat { get; set; } = "libopus";
@@ -218,6 +223,19 @@ namespace DCP_Ripper.Processing {
             string doubleRate = "-r " + content.framerate * 2;
             string leftFile = content.videoFile.Replace(".mxf", "_L.mkv").Replace(".MXF", "_L.mkv");
             string lowerCRF = "-crf " + Math.Max(CRF3D - 5, 0);
+            if (StereoMode == Mode3D.LeftEye) {
+                if (LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" -t {3} -vf select=\"mod(n-1\\,2)\" " +
+                "-c:v {4} -crf {5} -v error -stats \"{6}\"",
+                doubleRate, videoStart, content.videoFile, length, VideoFormat, CRF, fileName)))
+                    return fileName;
+                return null;
+            } else if (StereoMode == Mode3D.RightEye) {
+                if (LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" -t {3} -vf select=\"not(mod(n-1\\,2))\" " +
+                "-c:v {4} -crf {5} -v error -stats \"{6}\"",
+                doubleRate, videoStart, content.videoFile, length, VideoFormat, CRF, fileName)))
+                    return fileName;
+                return null;
+            }
 #if DEBUG
             if (!File.Exists(leftFile))
 #endif

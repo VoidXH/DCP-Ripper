@@ -35,5 +35,8 @@
     <Setting Name="deleteAftter" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="mode3d" Type="System.String" Scope="User">
+      <Value Profile="(Default)">HalfSideBySide</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
