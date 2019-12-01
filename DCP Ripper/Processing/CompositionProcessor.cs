@@ -10,6 +10,11 @@ namespace DCP_Ripper.Processing {
     /// </summary>
     public class CompositionProcessor {
         /// <summary>
+        /// FFmpeg arguments for single eye processing.
+        /// </summary>
+        const string singleEye = "{0} -ss {1} -i \"{2}\" -t {3} {4} -c:v {5} -crf {6} -v error -stats \"{7}\"";
+
+        /// <summary>
         /// Composition title.
         /// </summary>
         public string Title { get; private set; }
@@ -203,6 +208,19 @@ namespace DCP_Ripper.Processing {
         }
 
         /// <summary>
+        /// Generate FFmpeg filter sets for different 3D rips and eyes.
+        /// </summary>
+        /// <param name="left">Filter the left eye's frames</param>
+        /// <param name="halfSize">Half frame size depending on mode</param>
+        /// <param name="sbs">Side-by-side division if true, over-under otherwise</param>
+        string EyeFilters(bool left, bool halfSize, bool sbs = true) {
+            string output = left ? "-vf select=\"mod(n-1\\,2)\"" : "-vf select=\"not(mod(n-1\\,2))\"";
+            if (halfSize)
+                output += sbs ? ",scale=iw/2:ih,setsar=1:1" : ",scale=iw:ih/2,setsar=1:1";
+            return output;
+        }
+
+        /// <summary>
         /// Process a video file. The created file will have the same name, but in Matroska format, which is the returned value.
         /// </summary>
         public string ProcessVideo(Reel content, string extraModifiers = "") {
@@ -222,39 +240,42 @@ namespace DCP_Ripper.Processing {
             }
             string doubleRate = "-r " + content.framerate * 2;
             string leftFile = content.videoFile.Replace(".mxf", "_L.mkv").Replace(".MXF", "_L.mkv");
-            string lowerCRF = "-crf " + Math.Max(CRF3D - 5, 0);
-            if (StereoMode == Mode3D.LeftEye) {
-                if (LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" -t {3} -vf select=\"mod(n-1\\,2)\" " +
-                "-c:v {4} -crf {5} -v error -stats \"{6}\"",
-                doubleRate, videoStart, content.videoFile, length, VideoFormat, CRF, fileName)))
+            int lowerCRF = Math.Max(CRF3D - 5, 0);
+            if (StereoMode == Mode3D.Interop) {
+                if (LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" -t {3} -c:v {4} -crf {5} -v error -stats \"{6}\"",
+                    doubleRate, videoStart, content.videoFile, length, VideoFormat, CRF, fileName)))
+                    return fileName;
+                return null;
+            } else if (StereoMode == Mode3D.LeftEye) {
+                if (LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length, EyeFilters(true, false),
+                    VideoFormat, CRF, fileName)))
                     return fileName;
                 return null;
             } else if (StereoMode == Mode3D.RightEye) {
-                if (LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" -t {3} -vf select=\"not(mod(n-1\\,2))\" " +
-                "-c:v {4} -crf {5} -v error -stats \"{6}\"",
-                doubleRate, videoStart, content.videoFile, length, VideoFormat, CRF, fileName)))
+                if (LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length, EyeFilters(false, false),
+                    VideoFormat, CRF, fileName)))
                     return fileName;
                 return null;
             }
+            bool halfSize = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.HalfOverUnder;
+            bool sbs = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.SideBySide;
 #if DEBUG
             if (!File.Exists(leftFile))
 #endif
-            if (!LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" -t {3} -vf select=\"mod(n-1\\,2)\",scale=iw/2:ih,setsar=1:1 " +
-                "-c:v {4} {5} -v error -stats \"{6}\"",
-                doubleRate, videoStart, content.videoFile, length, VideoFormat, lowerCRF, leftFile)))
+            if (!LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length, EyeFilters(true, halfSize, sbs),
+                VideoFormat, lowerCRF, leftFile)))
                 return null;
             string rightFile = content.videoFile.Replace(".mxf", "_R.mkv").Replace(".MXF", "_R.mkv");
 #if DEBUG
             if (!File.Exists(rightFile))
 #endif
-            if (!LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" -t {3} -vf select=\"not(mod(n-1\\,2))\",scale=iw/2:ih,setsar=1:1 " +
-                "-c:v {4} {5} -v error -stats \"{6}\"",
-                doubleRate, videoStart, content.videoFile, length, VideoFormat, lowerCRF, rightFile))) {
+            if (!LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length, EyeFilters(false, halfSize, sbs),
+                VideoFormat, lowerCRF, rightFile))) {
                 return null;
             }
-            if (LaunchFFmpeg(string.Format("-i \"{0}\" -i \"{1}\" -filter_complex [0:v][1:v]hstack=inputs=2[v] -map [v] " +
-                "-c:v {2} -crf {3} -v error -stats \"{4}\"",
-                leftFile, rightFile, VideoFormat, CRF3D, fileName))) {
+            if (LaunchFFmpeg(string.Format("-i \"{0}\" -i \"{1}\" -filter_complex [0:v][1:v]{2}stack=inputs=2[v] -map [v] " +
+                "-c:v {3} -crf {4} -v error -stats \"{5}\"",
+                leftFile, rightFile, sbs ? 'h' : 'v', VideoFormat, CRF3D, fileName))) {
                 if (!File.Exists(fileName))
                     return null;
                 File.Delete(leftFile);

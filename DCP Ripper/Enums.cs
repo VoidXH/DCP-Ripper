@@ -194,9 +194,25 @@
     /// </summary>
     public enum Mode3D {
         /// <summary>
-        /// Horizontally half resolution stacked left/right eyes.
+        /// Horizontally stacked half resolution left/right eyes.
         /// </summary>
         HalfSideBySide,
+        /// <summary>
+        /// Vertically stacked half resolution left/right eyes.
+        /// </summary>
+        HalfOverUnder,
+        /// <summary>
+        /// Horizontally stacked left/right eyes.
+        /// </summary>
+        SideBySide,
+        /// <summary>
+        /// Vertically stacked left/right eyes.
+        /// </summary>
+        OverUnder,
+        /// <summary>
+        /// Alternating left/right eyes in a double framerate footage.
+        /// </summary>
+        Interop,
         /// <summary>
         /// 2D output with left eye retain.
         /// </summary>

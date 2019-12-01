@@ -58,17 +58,21 @@
                 </ComboBox>
                 <Label x:Name="mode3dLabel" Content="3D mode:" HorizontalAlignment="Left" Margin="10,123,0,0" VerticalAlignment="Top"/>
                 <ComboBox x:Name="mode3d" HorizontalAlignment="Right" Width="133" Margin="0,125,10,0" VerticalAlignment="Top">
-                    <ComboBoxItem Name="HalfSideBySide" Content="Half side-by-side" IsSelected="True"/>
-                    <ComboBoxItem Name="LeftEye" Content="Left eye only"/>
-                    <ComboBoxItem Name="RightEye" Content="Right eye only"/>
+                    <ComboBoxItem Name="HalfSideBySide" Content="Half side-by-side (stream standard)" IsSelected="True"/>
+                    <ComboBoxItem Name="HalfOverUnder" Content="Half over-under"/>
+                    <ComboBoxItem Name="SideBySide" Content="Side-by-side"/>
+                    <ComboBoxItem Name="OverUnder" Content="Over-under (retail standard)"/>
+                    <ComboBoxItem Name="Interop" Content="Interop (cinema standard)"/>
+                    <ComboBoxItem Name="LeftEye" Content="Left eye retaining 2D"/>
+                    <ComboBoxItem Name="RightEye" Content="Right eye retaining 2D"/>
                 </ComboBox>
                 <CheckBox x:Name="downscale" Content="Downscale 4K content to 2K" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="14,154,0,0" Checked="Downscale_Checked" Unchecked="Downscale_Unchecked"/>
             </Grid>
         </GroupBox>
         <GroupBox x:Name="audioBox" Grid.Column="1" Header="Audio settings" HorizontalAlignment="Left" Height="62" Margin="10,215,0,0" VerticalAlignment="Top" Width="231">
             <Grid>
-                <Label x:Name="audioLabel" Content="Audio:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
-                <ComboBox x:Name="audio" HorizontalAlignment="Right" Width="149" Margin="0,12,10,0" VerticalAlignment="Top" SelectionChanged="Audio_SelectionChanged">
+                <Label x:Name="audioLabel" Content="Format:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
+                <ComboBox x:Name="audio" HorizontalAlignment="Right" Width="144" Margin="0,12,10,0" VerticalAlignment="Top" SelectionChanged="Audio_SelectionChanged">
                     <ComboBoxItem x:Name="aac" Content="AAC (low quality, small, 5.1 only)"/>
                     <ComboBoxItem x:Name="libvorbis" Content="Vorbis (high quality, small)"/>
                     <ComboBoxItem x:Name="libopus" Content="Opus (transparent, small)" IsSelected="True"/>
