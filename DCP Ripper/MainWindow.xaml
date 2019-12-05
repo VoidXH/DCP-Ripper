@@ -30,9 +30,9 @@
             <Grid>
                 <Label x:Name="formatLabel" Content="Format:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
                 <ComboBox x:Name="format" HorizontalAlignment="Right" Width="143" Margin="0,12,10,0" VerticalAlignment="Top" SelectionChanged="Format_SelectionChanged">
-                    <ComboBoxItem Name="x265_444" Content="HEVC RExt 4:4:4" IsSelected="True"/>
-                    <ComboBoxItem Name="x265_420" Content="HEVC 4:2:0"/>
-                    <ComboBoxItem Name="x264_420" Content="AVC 4:2:0"/>
+                    <ComboBoxItem Name="x265_444" Content="HEVC RExt 4:4:4 (PC)" IsSelected="True"/>
+                    <ComboBoxItem Name="x265_420" Content="HEVC 4:2:0 (HEVC players)"/>
+                    <ComboBoxItem Name="x264_420" Content="AVC 4:2:0 (AVC players)"/>
                 </ComboBox>
                 <Label x:Name="crfLabel" Content="CRF:" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top"/>
                 <ComboBox x:Name="crf" HorizontalAlignment="Right" Width="160" Margin="0,43,10,0" VerticalAlignment="Top" SelectionChanged="CRF_SelectionChanged">
