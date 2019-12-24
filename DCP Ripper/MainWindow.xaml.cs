@@ -165,7 +165,7 @@ namespace DCP_Ripper {
                 Dispatcher.Invoke(() => Refresh_Click(null, null));
             if (finished == processed)
                 return;
-            int failureCount = processor.Compositions.Count - finished;
+            int failureCount = processed - finished;
             ProcessStatusUpdate(string.Format("Finished with {0} failure{1}!", failureCount, failureCount > 1 ? "s" : string.Empty));
             failedContent = processor.GetFailedContents();
             Dispatcher.Invoke(() => failureList.Visibility = Visibility.Visible);
