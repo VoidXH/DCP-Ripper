@@ -339,8 +339,8 @@ namespace DCP_Ripper.Processing {
                     path = contents[i].videoFile.Substring(0, contents[i].videoFile.LastIndexOf("\\") + 1);
                 else if (!path.EndsWith("\\"))
                     path += '\\';
-                string fileName = path + (length == 1 ? Title + ".mkv" : string.Format("{0}_{1}.mkv",
-                    force2K ? Title.Replace("_4K", "_2K") : Title, i + 1));
+                string outputTitle = force2K ? Title.Replace("_4K", "_2K") : Title;
+                string fileName = path + (length == 1 ? outputTitle + ".mkv" : string.Format("{0}_{1}.mkv", outputTitle, i + 1));
 #if DEBUG
                 if (File.Exists(fileName)) {
                     ++reelsDone;
