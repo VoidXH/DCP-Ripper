@@ -38,5 +38,11 @@
     <Setting Name="mode3d" Type="System.String" Scope="User">
       <Value Profile="(Default)">HalfSideBySide</Value>
     </Setting>
+    <Setting Name="width" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">760</Value>
+    </Setting>
+    <Setting Name="height" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">350</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

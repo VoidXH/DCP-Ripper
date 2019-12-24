@@ -28,6 +28,8 @@ namespace DCP_Ripper {
         /// </summary>
         public MainWindow() {
             InitializeComponent();
+            Width = Settings.Default.width;
+            Height = Settings.Default.height;
             failureList.Visibility = Visibility.Hidden;
             processor.OnStatusUpdate += ProcessStatusUpdate;
             processor.OnCompletion += AfterProcess;
@@ -213,6 +215,8 @@ namespace DCP_Ripper {
             Settings.Default.outputPath = processor.OutputPath;
             Settings.Default.zipAfter = processor.ZipAfter;
             Settings.Default.deleteAftter = processor.DeleteAfter;
+            Settings.Default.width = Width;
+            Settings.Default.height = Height;
             Settings.Default.Save();
         }
     }

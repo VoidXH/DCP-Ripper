@@ -166,5 +166,29 @@ namespace DCP_Ripper.Properties {
                 this["mode3d"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("760")]
+        public double width {
+            get {
+                return ((double)(this["width"]));
+            }
+            set {
+                this["width"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("350")]
+        public double height {
+            get {
+                return ((double)(this["height"]));
+            }
+            set {
+                this["height"] = value;
+            }
+        }
     }
 }
