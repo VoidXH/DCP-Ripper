@@ -1,4 +1,4 @@
-﻿namespace DCP_Ripper {
+﻿namespace DCP_Ripper.Processing {
     /// <summary>
     /// A single reel of content.
     /// </summary>
@@ -30,7 +30,7 @@
         /// <summary>
         /// Frame rate of the content.
         /// </summary>
-        public int framerate;
+        public float framerate;
         /// <summary>
         /// This content is encrypted and can't be processed.
         /// </summary>

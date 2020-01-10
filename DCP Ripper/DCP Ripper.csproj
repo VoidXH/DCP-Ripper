@@ -65,6 +65,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Processing\PlaylistProcessor.cs" />
     <Compile Include="Zipping\FileProgressDisplay.cs" />
     <Compile Include="Zipping\StreamWithProgress.cs" />
     <Page Include="MainWindow.xaml">
@@ -78,7 +79,7 @@
     <Compile Include="CompositionInfo.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Processing\ListProcessor.cs" />
-    <Compile Include="Reel.cs" />
+    <Compile Include="Processing\Reel.cs" />
     <Compile Include="Finder.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
