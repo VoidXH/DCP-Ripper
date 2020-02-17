@@ -23,8 +23,11 @@ namespace DCP_Ripper.Processing {
         Dictionary<string, string> ParseAssetMap(string directory) {
             Dictionary<string, string> map = new Dictionary<string, string>();
             string fileName = directory + "ASSETMAP";
-            if (!File.Exists(fileName))
-                return map;
+            if (!File.Exists(fileName)) {
+                fileName += ".xml";
+                if (!File.Exists(fileName))
+                    return map;
+            }
             string nextId = string.Empty;
             using (XmlReader reader = XmlReader.Create(fileName)) {
                 while (reader.Read()) {
