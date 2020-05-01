@@ -103,5 +103,6 @@
             </Grid>
         </GroupBox>
         <Button x:Name="aboutLink" Content="by VoidX" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="75" Click="AboutLink_Click" Grid.Column="2"/>
+        <Label x:Name="version" Content="v?.?.?" Grid.Column="2" Margin="0,0,90,7" HorizontalAlignment="Right" Width="80" Height="26" VerticalAlignment="Bottom" HorizontalContentAlignment="Right"/>
     </Grid>
 </Window>

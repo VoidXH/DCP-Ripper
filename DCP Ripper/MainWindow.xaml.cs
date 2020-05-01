@@ -3,6 +3,7 @@ using DCP_Ripper.Properties;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -33,6 +34,7 @@ namespace DCP_Ripper {
             failureList.Visibility = Visibility.Hidden;
             processor.OnStatusUpdate += ProcessStatusUpdate;
             processor.OnCompletion += AfterProcess;
+            version.Content = 'v' + FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
         }
 
         void CheckFFmpeg(string dir) {
