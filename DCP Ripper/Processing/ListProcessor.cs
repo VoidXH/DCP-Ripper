@@ -128,8 +128,14 @@ namespace DCP_Ripper.Processing {
                     AudioFormat = AudioFormat
                 };
                 string finalOutput = OutputPath, sourceFolder = composition.Substring(0, composition.LastIndexOf('\\'));
-                if (!string.IsNullOrEmpty(OutputPath) && OutputPath.Equals(parentMarker))
-                    finalOutput = sourceFolder.Substring(0, sourceFolder.LastIndexOf('\\'));
+                if (!string.IsNullOrEmpty(OutputPath) && OutputPath.Equals(parentMarker)) {
+                    int index = sourceFolder.LastIndexOf('\\');
+                    if (index < 0) {
+                        failures.AppendLine("Drive root is an invalid directory: " + title);
+                        continue;
+                    }
+                    finalOutput = sourceFolder.Substring(0, index);
+                }
                 if (processor.ProcessComposition(Force2K, finalOutput)) {
                     ++finished;
                     if (ZipAfter) {
@@ -140,7 +146,7 @@ namespace DCP_Ripper.Processing {
                     if (DeleteAfter)
                         Finder.DeleteAssets(sourceFolder);
                 } else
-                    failures.AppendLine(title);
+                    failures.AppendLine("Conversion error: " + title);
             }
             OnStatusUpdate?.Invoke("Finished!");
             OnCompletion?.Invoke(finished);
