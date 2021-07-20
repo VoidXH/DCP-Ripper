@@ -187,13 +187,22 @@ namespace DCP_Ripper {
             }
         }
 
-        void OutputDefault_Checked(object sender, RoutedEventArgs e) => processor.OutputPath = null;
-        void OutputParent_Checked(object sender, RoutedEventArgs e) => processor.OutputPath = ListProcessor.parentMarker;
+        void OutputDefault_Checked(object sender, RoutedEventArgs e) {
+            processor.OutputPath = null;
+            if (outputCustom != null)
+                outputCustom.Content = "Custom";
+        }
+
+        void OutputParent_Checked(object sender, RoutedEventArgs e) {
+            processor.OutputPath = ListProcessor.parentMarker;
+            if (outputCustom != null)
+                outputCustom.Content = "Custom";
+        }
 
         void OutputCustom_Checked(object sender, RoutedEventArgs e) {
-            if (sender is string) {
-                if (Directory.Exists((string)sender))
-                    processor.OutputPath = (string)sender;
+            if (sender is string senderStr) {
+                if (Directory.Exists(senderStr))
+                    processor.OutputPath = senderStr;
                 else
                     outputDefault.IsChecked = true;
             } else using (var dialog = new FolderBrowserDialog()) {
@@ -204,6 +213,9 @@ namespace DCP_Ripper {
                 else
                     outputParent.IsChecked = true;
             }
+            if (outputCustom.IsChecked.Value)
+                outputCustom.Content =
+                    $"Custom ({(processor.OutputPath.Length < 4 ? processor.OutputPath : Path.GetFileName(processor.OutputPath))})";
         }
 
         void FailureList_Click(object sender, RoutedEventArgs e) => MessageBox.Show(failedContent, "Failed contents");
