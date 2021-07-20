@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DCP_Ripper"
         mc:Ignorable="d"
-        Title="DCP Ripper" Height="420" Width="760" Loaded="Window_Loaded" Closed="Window_Closed">
+        Title="DCP Ripper" MinHeight="400" Height="400" MinWidth="760" Width="760" Loaded="Window_Loaded" Closed="Window_Closed">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
