@@ -32,9 +32,10 @@ namespace DCP_Ripper.Processing {
         /// Use chroma subsampling.
         /// </summary>
         public bool ChromaSubsampling {
-            get => VideoFormat.Equals("libx264") ? true : chromaSubsampling;
+            get => VideoFormat.Equals("libx264") || chromaSubsampling;
             set => chromaSubsampling = value;
         }
+        bool chromaSubsampling = false;
 
         /// <summary>
         /// Constant Rate Factor for AVC/HEVC codecs.
@@ -60,11 +61,6 @@ namespace DCP_Ripper.Processing {
         /// List of reel data in this composition.
         /// </summary>
         public IReadOnlyList<Reel> Contents { get; private set; }
-
-        /// <summary>
-        /// Use chroma subsampling.
-        /// </summary>
-        bool chromaSubsampling = false;
 
         /// <summary>
         /// Path of FFmpeg.
@@ -132,17 +128,13 @@ namespace DCP_Ripper.Processing {
             }
             string doubleRate = "-r " + (content.framerate * 2).ToString("0.000").Replace(',', '.');
             int lowerCRF = Math.Max(CRF3D - 5, 0);
-            if (StereoMode == Mode3D.Interop) {
-                if (LaunchFFmpeg(string.Format("{0} -ss {1} -i \"{2}\" -t {3} -c:v {4} -crf {5} -v error -stats \"{6}\"",
-                    doubleRate, videoStart, content.videoFile, length, VideoFormat, CRF, fileName)))
-                    return fileName;
-                return null;
-            } else if (StereoMode == Mode3D.LeftEye || StereoMode == Mode3D.RightEye) {
-                if (LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length,
-                    EyeFilters(StereoMode == Mode3D.LeftEye, false), VideoFormat, CRF, fileName)))
-                    return fileName;
-                return null;
-            }
+            if (StereoMode == Mode3D.Interop)
+                return LaunchFFmpeg($"{doubleRate} -ss {videoStart} -i \"{content.videoFile}\" -t {length} -c:v {VideoFormat} " +
+                    $"-crf {CRF} -v error -stats \"{fileName}\"") ? fileName : null;
+            else if (StereoMode == Mode3D.LeftEye || StereoMode == Mode3D.RightEye)
+                return LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length,
+                    EyeFilters(StereoMode == Mode3D.LeftEye, false), VideoFormat, CRF, fileName)) ? fileName : null;
+
             bool halfSize = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.HalfOverUnder;
             bool sbs = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.SideBySide;
             string leftFile = content.videoFile.Replace(".mxf", "_L.mkv").Replace(".MXF", "_L.mkv");
@@ -160,9 +152,8 @@ namespace DCP_Ripper.Processing {
                 VideoFormat, lowerCRF, rightFile))) {
                 return null;
             }
-            if (LaunchFFmpeg(string.Format("-i \"{0}\" -i \"{1}\" -filter_complex [0:v][1:v]{2}stack=inputs=2[v] -map [v] " +
-                "-c:v {3} {4} {5} -crf {6} -v error -stats \"{7}\"",
-                leftFile, rightFile, sbs ? 'h' : 'v', VideoFormat, subsampling, extraModifiers, CRF3D, fileName))) {
+            if (LaunchFFmpeg($"-i \"{leftFile}\" -i \"{rightFile}\" -filter_complex [0:v][1:v]{(sbs ? 'h' : 'v')}stack=inputs=2[v] " +
+                $"-map [v] -c:v {VideoFormat} {subsampling} {extraModifiers} -crf {CRF3D} -v error -stats \"{fileName}\"")) {
                 if (!File.Exists(fileName))
                     return null;
                 File.Delete(leftFile);
@@ -202,8 +193,8 @@ namespace DCP_Ripper.Processing {
         /// Merge a converted video and audio file, deleting the sources.
         /// </summary>
         public bool Merge(string video, string audio, string fileName) {
-            LaunchFFmpeg(string.Format("-i \"{0}\" -i \"{1}\" -c copy -v error -stats \"{2}\"", video, audio, fileName));
-            if (File.Exists(video) && File.Exists(audio)) {
+            if (File.Exists(video) && File.Exists(audio) &&
+                LaunchFFmpeg($"-i \"{video}\" -i \"{audio}\" -c copy -v error -stats \"{fileName}\"")) {
                 File.Delete(video);
                 File.Delete(audio);
                 return File.Exists(fileName);

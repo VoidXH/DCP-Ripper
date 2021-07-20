@@ -41,8 +41,7 @@ namespace DCP_Ripper.Zipping {
         /// <param name="progress">Read/written bytes</param>
         public void Report(long progress) {
             totalProgress += progress;
-            uiReporter.Invoke(string.Format("Zipping ({1}%): {0}...", fileName,
-                (totalProgress * 100 / (double)fileSize).ToString("0.00")));
+            uiReporter.Invoke($"Zipping ({totalProgress * 100 / (double)fileSize:0.00}%): {fileName}...");
         }
     }
 }

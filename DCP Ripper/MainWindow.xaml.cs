@@ -170,7 +170,7 @@ namespace DCP_Ripper {
             if (finished == processed)
                 return;
             int failureCount = processed - finished;
-            ProcessStatusUpdate(string.Format("Finished with {0} failure{1}!", failureCount, failureCount > 1 ? "s" : string.Empty));
+            ProcessStatusUpdate($"Finished with {failureCount} failure{(failureCount > 1 ? "s" : string.Empty)}!");
             failedContent = processor.GetFailedContents();
             Dispatcher.Invoke(() => failureList.Visibility = Visibility.Visible);
         }
