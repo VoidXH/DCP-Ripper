@@ -148,6 +148,8 @@ namespace DCP_Ripper {
         void ZipAfter_Unchecked(object sender, RoutedEventArgs e) => processor.ZipAfter = false;
         void DeleteAfter_Checked(object sender, RoutedEventArgs e) => processor.DeleteAfter = true;
         void DeleteAfter_Unchecked(object sender, RoutedEventArgs e) => processor.DeleteAfter = false;
+        void Overwrite_Checked(object sender, RoutedEventArgs e) => processor.Overwrite = true;
+        void Overwrite_Unchecked(object sender, RoutedEventArgs e) => processor.Overwrite = false;
 
         async void Start_Click(object sender, RoutedEventArgs e) {
             failureList.Visibility = Visibility.Hidden;

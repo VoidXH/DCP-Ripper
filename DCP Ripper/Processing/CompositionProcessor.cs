@@ -24,6 +24,11 @@ namespace DCP_Ripper.Processing {
         public string ForcePath { get; set; } = null;
 
         /// <summary>
+        /// Overwrite previously completed or interrupted files (streams and final files).
+        /// </summary>
+        public bool Overwrite { get; set; } = false;
+
+        /// <summary>
         /// This composition is 4K.
         /// </summary>
         public bool Is4K { get; private set; }
@@ -129,11 +134,9 @@ namespace DCP_Ripper.Processing {
         public string ProcessVideo(Reel content, string extraModifiers = "") {
             if (content.videoFile == null || !File.Exists(content.videoFile))
                 return null;
-#if DEBUG
-            if (File.Exists(fileName))
             string fileName = GetStreamExportPath(content.videoFile);
+            if (!Overwrite && File.Exists(fileName))
                 return fileName;
-#endif
             string videoStart = (content.videoStartFrame / content.framerate).ToString("0.000").Replace(',', '.');
             string length = (content.duration / content.framerate).ToString("0.000").Replace(',', '.');
             string subsampling = ChromaSubsampling ? "-pix_fmt yuv420p" : string.Empty;
@@ -153,20 +156,15 @@ namespace DCP_Ripper.Processing {
             bool halfSize = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.HalfOverUnder;
             bool sbs = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.SideBySide;
             string leftFile = content.videoFile.Replace(".mxf", "_L.mkv").Replace(".MXF", "_L.mkv");
-#if DEBUG
-            if (!File.Exists(leftFile))
-#endif
-            if (!LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length, EyeFilters(true, halfSize, sbs),
-                VideoFormat, lowerCRF, leftFile)))
-                return null;
+            if (Overwrite || !File.Exists(leftFile))
+                if (!LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length,
+                    EyeFilters(true, halfSize, sbs), VideoFormat, lowerCRF, leftFile)))
+                    return null;
             string rightFile = content.videoFile.Replace(".mxf", "_R.mkv").Replace(".MXF", "_R.mkv");
-#if DEBUG
-            if (!File.Exists(rightFile))
-#endif
-            if (!LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length, EyeFilters(false, halfSize, sbs),
-                VideoFormat, lowerCRF, rightFile))) {
-                return null;
-            }
+            if (Overwrite || !File.Exists(rightFile))
+                if (!LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length,
+                    EyeFilters(false, halfSize, sbs), VideoFormat, lowerCRF, rightFile)))
+                    return null;
             if (LaunchFFmpeg($"-i \"{leftFile}\" -i \"{rightFile}\" -filter_complex [0:v][1:v]{(sbs ? 'h' : 'v')}stack=inputs=2[v] " +
                 $"-map [v] -c:v {VideoFormat} {subsampling} {extraModifiers} -crf {CRF3D} -v error -stats \"{fileName}\"")) {
                 if (!File.Exists(fileName))
@@ -191,11 +189,9 @@ namespace DCP_Ripper.Processing {
         public string ProcessAudio(Reel content) {
             if (content.audioFile == null || !File.Exists(content.audioFile))
                 return null;
-            string fileName = content.audioFile.Replace(".mxf", ".mkv").Replace(".MXF", ".mkv");
-#if DEBUG
-            if (File.Exists(fileName))
+            string fileName = GetStreamExportPath(content.audioFile);
+            if (!Overwrite && File.Exists(fileName))
                 return fileName;
-#endif
             return LaunchFFmpeg(string.Format("-i \"{0}\" -ss {1} -t {2} -c:a {3} -v error -stats \"{4}\"",
                 content.audioFile,
                 (content.audioStartFrame / content.framerate).ToString("0.000").Replace(',', '.'),
@@ -221,25 +217,20 @@ namespace DCP_Ripper.Processing {
         /// Process the video files of this DCP. Returns if all reels were successfully processed.
         /// </summary>
         /// <param name="force2K">Downscale 4K content to 2K</param>
-        /// <param name="forcePath">Change the default output directory, which is the container of the video file</param>
-        public bool ProcessComposition(bool force2K = false, string forcePath = null) {
+        public bool ProcessComposition(bool force2K = false) {
             int reelsDone = 0;
             for (int i = 0, length = Contents.Count; i < length; ++i) {
                 if (Contents[i].needsKey || Contents[i].videoFile == null)
                     continue;
-                string path = forcePath;
+                string path = ForcePath;
                 if (path == null)
-                    path = Contents[i].videoFile.Substring(0, Contents[i].videoFile.LastIndexOf("\\") + 1);
-                else if (!path.EndsWith("\\"))
-                    path += '\\';
+                    path = Path.GetDirectoryName(Contents[i].videoFile);
                 string outputTitle = force2K ? Title.Replace("_4K", "_2K") : Title;
-                string fileName = path + (length == 1 ? outputTitle + ".mkv" : string.Format("{0}_{1}.mkv", outputTitle, i + 1));
-#if DEBUG
-                if (File.Exists(fileName)) {
+                string fileName = Path.Combine(path, length == 1 ? outputTitle + ".mkv" : $"{outputTitle}_{i + 1}.mkv");
+                if (!Overwrite && File.Exists(fileName)) {
                     ++reelsDone;
                     continue;
                 }
-#endif
                 string video = force2K ? ProcessVideo2K(Contents[i]) : ProcessVideo(Contents[i]);
                 string audio = ProcessAudio(Contents[i]);
                 if (video != null && audio != null && Merge(video, audio, fileName))

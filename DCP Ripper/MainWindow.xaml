@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DCP_Ripper"
         mc:Ignorable="d"
-        Title="DCP Ripper" Height="350" Width="760" Loaded="Window_Loaded" Closed="Window_Closed">
+        Title="DCP Ripper" Height="420" Width="760" Loaded="Window_Loaded" Closed="Window_Closed">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -86,20 +86,26 @@
         <GroupBox x:Name="processBox" Grid.Column="2" Header="Process" Margin="10,10,10,44">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="4*"/>
-                    <ColumnDefinition Width="105*"/>
+                    <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <Button x:Name="start" Content="Start" HorizontalAlignment="Left" Margin="2,10,0,0" VerticalAlignment="Top" Width="74" Click="Start_Click" IsEnabled="False" Grid.Column="1"/>
-                <Button x:Name="locateFFmpeg" Content="Locate FFmpeg" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="119" Click="LocateFFmpeg_Click" Grid.Column="1"/>
-                <Label x:Name="outputLocationLabel" Content="Output location:" HorizontalAlignment="Left" Margin="2,35,0,0" VerticalAlignment="Top" Grid.Column="1"/>
-                <RadioButton x:Name="outputDefault" Content="Content folder" HorizontalAlignment="Left" Margin="2,66,0,0" VerticalAlignment="Top" GroupName="outputLocation" IsChecked="True" Checked="OutputDefault_Checked" Grid.Column="1"/>
-                <RadioButton x:Name="outputParent" Content="Parent folder" HorizontalAlignment="Left" Margin="2,86,0,0" VerticalAlignment="Top" GroupName="outputLocation" Checked="OutputParent_Checked" IsChecked="True" Grid.Column="1"/>
-                <RadioButton x:Name="outputCustom" Content="Custom" HorizontalAlignment="Left" Margin="2,106,0,0" VerticalAlignment="Top" GroupName="outputLocation" Grid.Column="1"/>
-                <Label x:Name="afterLabel" Content="After completion:" HorizontalAlignment="Left" Margin="2,126,0,0" VerticalAlignment="Top" Grid.Column="1"/>
-                <CheckBox x:Name="zipAfter" Content="Zip" HorizontalAlignment="Left" Margin="2,157,0,0" VerticalAlignment="Top" Checked="ZipAfter_Checked" Unchecked="ZipAfter_Unchecked" Grid.Column="1"/>
-                <CheckBox x:Name="deleteAfter" Content="Delete" HorizontalAlignment="Left" Margin="53,157,0,0" VerticalAlignment="Top" Checked="DeleteAfter_Checked" Unchecked="DeleteAfter_Unchecked" Grid.Column="1"/>
-                <TextBlock x:Name="processLabel" Text="Locating FFmpeg..." Margin="2,176,35,10" Padding="5" TextWrapping="Wrap" Grid.Column="1"/>
-                <Button x:Name="failureList" Content="..." HorizontalAlignment="Right" Margin="0,0,10,43" VerticalAlignment="Bottom" Width="20" Click="FailureList_Click" Grid.Column="1"/>
+                <Button x:Name="start" Content="Start" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="74" Click="Start_Click" IsEnabled="False"/>
+                <Button x:Name="locateFFmpeg" Content="Locate FFmpeg" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="119" Click="LocateFFmpeg_Click"/>
+                <GroupBox Header="Output location" Height="91" Margin="10,35,10,0" VerticalAlignment="Top">
+                    <Grid>
+                        <RadioButton x:Name="outputDefault" Content="Content folder" HorizontalAlignment="Left" Margin="10,8,0,0" VerticalAlignment="Top" GroupName="outputLocation" IsChecked="True" Checked="OutputDefault_Checked"/>
+                        <RadioButton x:Name="outputParent" Content="Parent folder" HorizontalAlignment="Left" Margin="10,28,0,0" VerticalAlignment="Top" GroupName="outputLocation" Checked="OutputParent_Checked" IsChecked="True"/>
+                        <RadioButton x:Name="outputCustom" Content="Custom" HorizontalAlignment="Left" Margin="10,48,0,0" VerticalAlignment="Top" GroupName="outputLocation"/>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="After completion" Height="58" Margin="10,131,10,0" VerticalAlignment="Top">
+                    <Grid>
+                        <CheckBox x:Name="zipAfter" Content="Zip" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Checked="ZipAfter_Checked" Unchecked="ZipAfter_Unchecked"/>
+                        <CheckBox x:Name="deleteAfter" Content="Delete" HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top" Checked="DeleteAfter_Checked" Unchecked="DeleteAfter_Unchecked"/>
+                    </Grid>
+                </GroupBox>
+                <CheckBox x:Name="overwrite" Content="Overwrite completed files" HorizontalAlignment="Left" Margin="10,194,0,0" VerticalAlignment="Top" Checked="Overwrite_Checked" Unchecked="Overwrite_Unchecked"/>
+                <TextBlock x:Name="processLabel" Text="Locating FFmpeg..." Margin="10,214,35,10" Padding="5" TextWrapping="Wrap"/>
+                <Button x:Name="failureList" Content="..." HorizontalAlignment="Right" Margin="0,217,10,0" Width="20" Click="FailureList_Click" Height="20" VerticalAlignment="Top"/>
             </Grid>
         </GroupBox>
         <Button x:Name="aboutLink" Content="by VoidX" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="75" Click="AboutLink_Click" Grid.Column="2"/>

@@ -74,6 +74,11 @@ namespace DCP_Ripper.Processing {
         public bool DeleteAfter { get; set; } = false;
 
         /// <summary>
+        /// Overwrite previously completed or interrupted files (streams and final files).
+        /// </summary>
+        public bool Overwrite { get; set; } = false;
+
+        /// <summary>
         /// Process state update.
         /// </summary>
         /// <param name="status">Current job</param>
