@@ -91,10 +91,11 @@ namespace DCP_Ripper.Processing {
         /// Gets where the stream or final export file should be placed.
         /// </summary>
         string GetStreamExportPath(string source) {
-            string fileName = source.Replace(".mxf", ".mkv").Replace(".MXF", ".mkv");
+            string directory = Path.GetDirectoryName(source),
+                file = "stream-" + Path.GetFileName(source).Replace(".mxf", ".mkv").Replace(".MXF", ".mkv");
             if (ForcePath != null)
-                fileName = Path.Combine(ForcePath, Path.GetFileName(fileName));
-            return fileName;
+                directory = ForcePath;
+            return Path.Combine(directory, file);
         }
 
         /// <summary>
