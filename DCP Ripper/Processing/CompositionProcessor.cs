@@ -19,6 +19,11 @@ namespace DCP_Ripper.Processing {
         public string Title { get; private set; }
 
         /// <summary>
+        /// Override the working/export path.
+        /// </summary>
+        public string ForcePath { get; set; } = null;
+
+        /// <summary>
         /// This composition is 4K.
         /// </summary>
         public bool Is4K { get; private set; }
@@ -78,6 +83,16 @@ namespace DCP_Ripper.Processing {
         }
 
         /// <summary>
+        /// Gets where the stream or final export file should be placed.
+        /// </summary>
+        string GetStreamExportPath(string source) {
+            string fileName = source.Replace(".mxf", ".mkv").Replace(".MXF", ".mkv");
+            if (ForcePath != null)
+                fileName = Path.Combine(ForcePath, Path.GetFileName(fileName));
+            return fileName;
+        }
+
+        /// <summary>
         /// Launch the FFmpeg to process a file with the given arguments.
         /// </summary>
         bool LaunchFFmpeg(string arguments) {
@@ -114,18 +129,18 @@ namespace DCP_Ripper.Processing {
         public string ProcessVideo(Reel content, string extraModifiers = "") {
             if (content.videoFile == null || !File.Exists(content.videoFile))
                 return null;
-            string fileName = content.videoFile.Replace(".mxf", ".mkv").Replace(".MXF", ".mkv");
 #if DEBUG
             if (File.Exists(fileName))
+            string fileName = GetStreamExportPath(content.videoFile);
                 return fileName;
 #endif
             string videoStart = (content.videoStartFrame / content.framerate).ToString("0.000").Replace(',', '.');
             string length = (content.duration / content.framerate).ToString("0.000").Replace(',', '.');
             string subsampling = ChromaSubsampling ? "-pix_fmt yuv420p" : string.Empty;
-            if (!content.is3D) {
-                return LaunchFFmpeg(string.Format("-ss {0} -i \"{1}\" -t {2} -c:v {3} {4} {5} -crf {6} -v error -stats \"{7}\"",
-                    videoStart, content.videoFile, length, VideoFormat, subsampling, extraModifiers, CRF, fileName)) ? fileName : null;
-            }
+            if (!content.is3D)
+                return LaunchFFmpeg($"-ss {videoStart} -i \"{content.videoFile}\" -t {length} -c:v {VideoFormat} " +
+                    $"{subsampling} {extraModifiers} -crf {CRF} -v error -stats \"{fileName}\"") ? fileName : null;
+
             string doubleRate = "-r " + (content.framerate * 2).ToString("0.000").Replace(',', '.');
             int lowerCRF = Math.Max(CRF3D - 5, 0);
             if (StereoMode == Mode3D.Interop)

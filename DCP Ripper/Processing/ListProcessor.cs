@@ -118,15 +118,7 @@ namespace DCP_Ripper.Processing {
                 if (!File.Exists(composition))
                     continue;
                 string title = Finder.GetCPLTitle(composition);
-                OnStatusUpdate?.Invoke(string.Format("Processing {0}...", title));
-                CompositionProcessor processor = new CompositionProcessor(FFmpegPath, composition) {
-                    VideoFormat = VideoFormat,
-                    ChromaSubsampling = ChromaSubsampling,
-                    CRF = CRF,
-                    CRF3D = CRF3D,
-                    StereoMode = StereoMode,
-                    AudioFormat = AudioFormat
-                };
+                OnStatusUpdate?.Invoke($"Processing {title}...");
                 string finalOutput = OutputPath, sourceFolder = composition.Substring(0, composition.LastIndexOf('\\'));
                 if (!string.IsNullOrEmpty(OutputPath) && OutputPath.Equals(parentMarker)) {
                     int index = sourceFolder.LastIndexOf('\\');
@@ -136,12 +128,21 @@ namespace DCP_Ripper.Processing {
                     }
                     finalOutput = sourceFolder.Substring(0, index);
                 }
-                if (processor.ProcessComposition(Force2K, finalOutput)) {
+                CompositionProcessor processor = new CompositionProcessor(FFmpegPath, composition) {
+                    ForcePath = finalOutput,
+                    Overwrite = Overwrite,
+                    VideoFormat = VideoFormat,
+                    ChromaSubsampling = ChromaSubsampling,
+                    CRF = CRF,
+                    CRF3D = CRF3D,
+                    StereoMode = StereoMode,
+                    AudioFormat = AudioFormat
+                };
+                if (processor.ProcessComposition(Force2K)) {
                     ++finished;
                     if (ZipAfter) {
-                        OnStatusUpdate?.Invoke(string.Format("Zipping {0}...", title));
-                        Finder.ZipAssets(sourceFolder, string.Format("{0}\\{1}.zip", finalOutput, title),
-                            textOut => OnStatusUpdate(textOut));
+                        OnStatusUpdate?.Invoke($"Zipping {title}...");
+                        Finder.ZipAssets(sourceFolder, $"{finalOutput}\\{title}.zip", textOut => OnStatusUpdate(textOut));
                     }
                     if (DeleteAfter)
                         Finder.DeleteAssets(sourceFolder);
