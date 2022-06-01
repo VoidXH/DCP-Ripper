@@ -1,97 +1,118 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Windows.Media;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DCP_Ripper {
     /// <summary>
     /// Get all available information about a composition from DCNC-compatible file names.
     /// </summary>
-    public class CompositionInfo {
+    [SuppressMessage("Design", "CA1067", Justification = "No.")]
+    public class CompositionInfo : IEquatable<CompositionInfo> {
         /// <summary>
         /// Complete title.
         /// </summary>
-        public string Title { get; set; }
+        public string Title { get; private set; }
         /// <summary>
         /// Content type.
         /// </summary>
-        public ContentType Type { get; set; }
+        public ContentType Type { get; private set; }
         /// <summary>
         /// Unconventional content modifiers.
         /// </summary>
-        public string Modifiers { get; set; }
+        public string Modifiers { get; private set; }
         /// <summary>
         /// Framing name and aspect ratio.
         /// </summary>
-        public Framing AspectRatio { get; set; }
+        public Framing AspectRatio { get; private set; }
         /// <summary>
         /// Content language.
         /// </summary>
-        public string Language { get; set; }
+        public string Language { get; private set; }
         /// <summary>
         /// Distribution area.
         /// </summary>
-        public string Territory { get; set; }
+        public string Territory { get; private set; }
         /// <summary>
         /// Main audio track format.
         /// </summary>
-        public AudioTrack Audio { get; set; }
+        public AudioTrack Audio { get; private set; }
         /// <summary>
         /// Video width.
         /// </summary>
-        public Resolution Resolution { get; set; }
+        public Resolution Resolution { get; private set; }
         /// <summary>
         /// Content creator.
         /// </summary>
-        public string Studio { get; set; }
+        public string Studio { get; private set; }
         /// <summary>
         /// Creation date.
         /// </summary>
-        public DateTime Creation { get; set; }
+        public DateTime Creation { get; private set; }
         /// <summary>
         /// DCP creator.
         /// </summary>
-        public string Facility { get; set; }
+        public string Facility { get; private set; }
         /// <summary>
         /// Used DCP standard.
         /// </summary>
-        public string Standard { get; set; }
+        public string Standard { get; private set; }
         /// <summary>
         /// Original version or version file.
         /// </summary>
-        public Version PackageType { get; set; }
+        public Version PackageType { get; private set; }
+
+        /// <summary>
+        /// The contained material for the title.
+        /// </summary>
+        public string Material => $"{Type.ToString()[4..]} {Modifiers}";
 
         // Enum cache
         static readonly string[] contentTypes = Enum.GetNames(typeof(ContentType));
         static readonly string[] aspects = Enum.GetNames(typeof(Framing));
         static readonly string[] versions = Enum.GetNames(typeof(Version));
-        static readonly Dictionary<ContentType, Brush> typeBackgrounds = new();
 
         /// <summary>
         /// Parse a DCNC file name.
         /// </summary>
         public CompositionInfo(string title) {
-            Title = title;
             string[] modifiers = title.Split('_');
-            bool wasDate = false;
-            for (int i = 1, c = modifiers.Length; i < c; ++i) {
+            bool wasDate = false,
+                wasLanguage = false;
+            for (int i = 0, c = modifiers.Length; i < c; ++i) {
                 if (modifiers[i].Length == 8 && int.TryParse(modifiers[i], out int date)) {
                     Creation = new DateTime(date / 10000, date % 10000 / 100, date % 100);
                     wasDate = true;
-                } else if (Enum.TryParse('_' + modifiers[i], out Resolution detectedRes)) Resolution = detectedRes;
+                } else if (Enum.TryParse('_' + modifiers[i], out Resolution detectedRes))
+                    Resolution = detectedRes;
                 else if (modifiers[i].StartsWith("iop", StringComparison.CurrentCultureIgnoreCase) ||
-                    modifiers[i].StartsWith("smpte", StringComparison.CurrentCultureIgnoreCase)) Standard = modifiers[i].ToUpper();
-                else if (TryParseEnum(modifiers[i], versions, out Version packageType)) PackageType = packageType;
-                else if (TryParseEnum(modifiers[i], aspects, out Framing aspectRatio)) AspectRatio = aspectRatio;
-                else if (TryParseAudio(modifiers[i], out AudioTrack format)) Audio = format;
+                    modifiers[i].StartsWith("smpte", StringComparison.CurrentCultureIgnoreCase))
+                    Standard = modifiers[i].ToUpper();
+                else if (TryParseEnum(modifiers[i], versions, out Version packageType))
+                    PackageType = packageType;
+                else if (TryParseAudio(modifiers[i], out AudioTrack format))
+                    Audio = format;
                 else if (TryParseContentType(modifiers[i], out ContentType type, out string contentMods)) {
                     Type = type;
                     Modifiers = contentMods;
-                } else if (IsLanguage(modifiers[i])) {
-                    if (string.IsNullOrEmpty(Language)) Language = modifiers[i];
-                    else Territory = modifiers[i];
-                } else if (wasDate) Facility = modifiers[i];
-                else Studio = modifiers[i];
+                } else if (TryParseEnum(modifiers[i], aspects, out Framing aspectRatio))
+                    AspectRatio = aspectRatio;
+                else if (wasLanguage || (wasLanguage = IsLanguage(modifiers[i]))) {
+                    if (string.IsNullOrEmpty(Language))
+                        Language = modifiers[i];
+                    else {
+                        Territory = modifiers[i];
+                        wasLanguage = false;
+                    }
+                } else if (wasDate && string.IsNullOrEmpty(Facility))
+                    Facility = modifiers[i];
+                else if (Type != ContentType.UNK_Unknown)
+                    Studio = modifiers[i];
+                else if (string.IsNullOrEmpty(Title))
+                    Title = modifiers[i];
+                else
+                    Title += "_" + modifiers[i];
             }
+            if (string.IsNullOrEmpty(Title))
+                Title = "N/A";
             if (string.IsNullOrEmpty(Language))
                 Language = "XX";
             if (string.IsNullOrEmpty(Territory))
@@ -135,6 +156,9 @@ namespace DCP_Ripper {
             if (modifier.Contains("auro")) track = AudioTrack.Auro;
             if (modifier.Contains("auromax")) track = AudioTrack.AuroMax;
             if (modifier.Contains("dtsx")) track = AudioTrack.DTS___X;
+            if (modifier.Contains("imax5")) track = AudioTrack.IMAX5;
+            if (modifier.Contains("imax6")) track = AudioTrack.IMAX5;
+            if (modifier.Contains("imax12")) track = AudioTrack.IMAX5;
             return track != AudioTrack.Unknown;
         }
 
@@ -171,18 +195,10 @@ namespace DCP_Ripper {
         }
 
         /// <summary>
-        /// Get a brush color for background by content type.
+        /// Checks if two compositions are the same, except for the language and creator.
         /// </summary>
-        public Brush GetBrush() {
-            if (typeBackgrounds.ContainsKey(Type))
-                return typeBackgrounds[Type];
-            string contentType = Type.ToString();
-            int mul = 255 / ('Z' - 'A');
-            Color tint = Color.FromArgb(63,
-                (byte)((contentType[0] - 'A') * mul),
-                (byte)((contentType[1] - 'A') * mul),
-                (byte)((contentType[2] - 'A') * mul));
-            return typeBackgrounds[Type] = new SolidColorBrush(tint);
-        }
+        public bool Equals(CompositionInfo other) =>
+            Title.Equals(other.Title) && Type.Equals(other.Title) && Modifiers.Equals(other.Modifiers) &&
+            AspectRatio.Equals(other.AspectRatio) && Audio.Equals(other.Audio) && Resolution.Equals(other.Resolution);
     }
 }

@@ -173,6 +173,18 @@
         /// Raw Cavern 10.1 surround sound including bottom surround.
         /// </summary>
         CavernXL,
+        /// <summary>
+        /// IMAX 5.0.
+        /// </summary>
+        IMAX5,
+        /// <summary>
+        /// IMAX 6.0 (5.0 + center height).
+        /// </summary>
+        IMAX6,
+        /// <summary>
+        /// IMAX 12-track.
+        /// </summary>
+        IMAX12,
     }
 
     /// <summary>

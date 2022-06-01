@@ -1,6 +1,7 @@
 ﻿using DCP_Ripper.Processing;
 using DCP_Ripper.Properties;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -51,15 +52,13 @@ namespace DCP_Ripper {
 
         void OpenFolder(string path) {
             processor.Compositions = Finder.ProcessFolder(path);
-            foundContent.Items.Clear();
+            List<CompositionInfo> items = new();
             foreach (string composition in processor.Compositions) {
                 string title = Finder.GetCPLTitle(composition);
                 CompositionInfo info = new(title);
-                foundContent.Items.Add(new ListViewItem() {
-                    Background = info.GetBrush(),
-                    Content = title
-                });
+                items.Add(info);
             }
+            foundContent.ItemsSource = items;
         }
 
         void Window_Loaded(object sender, RoutedEventArgs e) {
