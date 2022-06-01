@@ -16,14 +16,17 @@ namespace DCP_Ripper {
         /// </summary>
         static bool IsCPL(string path) {
             if (path.ToLower().EndsWith("xml")) {
-                using (XmlReader reader = XmlReader.Create(path)) {
+                using XmlReader reader = XmlReader.Create(path);
+                try {
                     if (!reader.Read())
                         return false;
-                    while (reader.Name.Equals("xml") || string.IsNullOrEmpty(reader.Name.Trim()))
-                        if (!reader.Read())
-                            return false;
-                    return reader.Name.Equals("CompositionPlaylist");
+                } catch {
+                    return false;
                 }
+                while (reader.Name.Equals("xml") || string.IsNullOrEmpty(reader.Name.Trim()))
+                    if (!reader.Read())
+                        return false;
+                return reader.Name.Equals("CompositionPlaylist");
             }
             return false;
         }
@@ -32,13 +35,12 @@ namespace DCP_Ripper {
         /// Get the content title of a composition playlist.
         /// </summary>
         public static string GetCPLTitle(string path) {
-            using (XmlReader reader = XmlReader.Create(path)) {
-                while (!reader.Name.Equals("ContentTitleText"))
-                    if (!reader.Read())
-                        return path.Substring(path.LastIndexOf("\\") + 1);
-                reader.Read();
-                return reader.Value;
-            }
+            using XmlReader reader = XmlReader.Create(path);
+            while (!reader.Name.Equals("ContentTitleText"))
+                if (!reader.Read())
+                    return path[(path.LastIndexOf("\\") + 1)..];
+            reader.Read();
+            return reader.Value;
         }
 
         /// <summary>
@@ -63,7 +65,7 @@ namespace DCP_Ripper {
         /// Starts checking a folder and its subfolders for composition playlist files.
         /// </summary>
         public static List<string> ProcessFolder(string path) {
-            List<string> result = new List<string>();
+            List<string> result = new();
             ProcessFolder(path, result);
             return result;
         }
@@ -90,18 +92,19 @@ namespace DCP_Ripper {
         static void AppendFolderToZip(string path, ZipArchive zip, Action<string> uiReporter, string zipPath = "") {
             string[] directories = Directory.GetDirectories(path);
             foreach (string subdirectory in directories)
-                AppendFolderToZip(subdirectory, zip, uiReporter, zipPath + subdirectory.Substring(subdirectory.LastIndexOf('\\') + 1) + '\\');
+                AppendFolderToZip(subdirectory, zip, uiReporter,
+                    zipPath + subdirectory[(subdirectory.LastIndexOf('\\') + 1)..] + '\\');
             string[] allFiles = Directory.GetFiles(path);
             foreach (string asset in allFiles) {
                 if (!asset.EndsWith(".mkv") && !asset.EndsWith(".zip")) {
                     string entryName = Path.GetFileName(asset);
                     ZipArchiveEntry entry = zip.CreateEntry(zipPath + entryName);
                     entry.LastWriteTime = DateTime.Now;
-                    using (Stream inputStream = File.OpenRead(asset))
-                    using (Stream outputStream = entry.Open())
-                    using (Stream progressStream = new StreamWithProgress(inputStream,
-                        new FileProgressDisplay(entryName, inputStream.Length, uiReporter), null))
-                        progressStream.CopyTo(outputStream);
+                    using Stream inputStream = File.OpenRead(asset);
+                    using Stream outputStream = entry.Open();
+                    using Stream progressStream = new StreamWithProgress(inputStream,
+                        new FileProgressDisplay(entryName, inputStream.Length, uiReporter), null);
+                    progressStream.CopyTo(outputStream);
                 }
             }
         }
@@ -114,8 +117,8 @@ namespace DCP_Ripper {
                 return;
             if (!path.EndsWith("\\"))
                 path += '\\';
-            using (ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
-                AppendFolderToZip(path, zip, uiReporter);
+            using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Create);
+            AppendFolderToZip(path, zip, uiReporter);
         }
 
         /// <summary>
@@ -123,7 +126,7 @@ namespace DCP_Ripper {
         /// </summary>
         public static List<string> ForceGetAssets(string path) {
             string[] allFiles = Directory.GetFiles(path);
-            List<string> assets = new List<string>();
+            List<string> assets = new();
             foreach (string asset in allFiles)
                 if (asset.ToLower().EndsWith(".mxf"))
                     assets.Add(asset);

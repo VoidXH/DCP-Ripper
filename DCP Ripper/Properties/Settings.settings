@@ -44,5 +44,8 @@
     <Setting Name="height" Type="System.Double" Scope="User">
       <Value Profile="(Default)">350</Value>
     </Setting>
+    <Setting Name="downmix" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

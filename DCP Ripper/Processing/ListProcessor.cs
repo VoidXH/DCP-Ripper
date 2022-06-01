@@ -64,6 +64,12 @@ namespace DCP_Ripper.Processing {
         public string AudioFormat { get; set; } = "libopus";
 
         /// <summary>
+        /// Apply a 5.1 downmix before encoding the audio to keep the gain of 5.1 rear tracks.
+        /// Otherwise it will result in -3 dB gain for the actual surround channels.
+        /// </summary>
+        public bool DownmixTo51 { get; set; } = false;
+
+        /// <summary>
         /// Zip the composition after conversion.
         /// </summary>
         public bool ZipAfter { get; set; } = false;
@@ -124,16 +130,16 @@ namespace DCP_Ripper.Processing {
                     continue;
                 string title = Finder.GetCPLTitle(composition);
                 OnStatusUpdate?.Invoke($"Processing {title}...");
-                string finalOutput = OutputPath, sourceFolder = composition.Substring(0, composition.LastIndexOf('\\'));
+                string finalOutput = OutputPath, sourceFolder = composition[..composition.LastIndexOf('\\')];
                 if (!string.IsNullOrEmpty(OutputPath) && OutputPath.Equals(parentMarker)) {
                     int index = sourceFolder.LastIndexOf('\\');
                     if (index < 0) {
                         failures.AppendLine("Drive root is an invalid directory: " + title);
                         continue;
                     }
-                    finalOutput = sourceFolder.Substring(0, index);
+                    finalOutput = sourceFolder[..index];
                 }
-                CompositionProcessor processor = new CompositionProcessor(FFmpegPath, composition) {
+                CompositionProcessor processor = new(FFmpegPath, composition) {
                     ForcePath = finalOutput,
                     Overwrite = Overwrite,
                     VideoFormat = VideoFormat,
@@ -143,7 +149,7 @@ namespace DCP_Ripper.Processing {
                     StereoMode = StereoMode,
                     AudioFormat = AudioFormat
                 };
-                if (processor.ProcessComposition(Force2K)) {
+                if (processor.ProcessComposition(Force2K, DownmixTo51)) {
                     ++finished;
                     if (ZipAfter) {
                         OnStatusUpdate?.Invoke($"Zipping {title}...");

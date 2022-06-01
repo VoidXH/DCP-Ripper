@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Cavern.Format;
+using Cavern.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -82,7 +84,7 @@ namespace DCP_Ripper.Processing {
         /// </summary>
         public CompositionProcessor(string ffmpegPath, string cplPath) {
             this.ffmpegPath = ffmpegPath;
-            PlaylistProcessor importer = new PlaylistProcessor(cplPath);
+            PlaylistProcessor importer = new(cplPath);
             Contents = importer.Contents;
             Is4K = (Title = importer.Title).Contains("_4K");
         }
@@ -102,15 +104,14 @@ namespace DCP_Ripper.Processing {
         /// Launch the FFmpeg to process a file with the given arguments.
         /// </summary>
         bool LaunchFFmpeg(string arguments) {
-            ProcessStartInfo start = new ProcessStartInfo {
+            ProcessStartInfo start = new() {
                 Arguments = arguments,
                 FileName = ffmpegPath
             };
             try {
-                using (Process proc = Process.Start(start)) {
-                    proc.WaitForExit();
-                    return proc.ExitCode == 0;
-                }
+                using Process proc = Process.Start(start);
+                proc.WaitForExit();
+                return proc.ExitCode == 0;
             } catch {
                 return false;
             }
@@ -122,7 +123,7 @@ namespace DCP_Ripper.Processing {
         /// <param name="left">Filter the left eye's frames</param>
         /// <param name="halfSize">Half frame size depending on mode</param>
         /// <param name="sbs">Side-by-side division if true, over-under otherwise</param>
-        string EyeFilters(bool left, bool halfSize, bool sbs = true) {
+        static string EyeFilters(bool left, bool halfSize, bool sbs = true) {
             string output = left ? "-vf select=\"mod(n-1\\,2)\"" : "-vf select=\"not(mod(n-1\\,2))\"";
             if (halfSize)
                 output += sbs ? ",scale=iw/2:ih,setsar=1:1" : ",scale=iw:ih/2,setsar=1:1";
@@ -166,8 +167,9 @@ namespace DCP_Ripper.Processing {
                 if (!LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length,
                     EyeFilters(false, halfSize, sbs), VideoFormat, lowerCRF, rightFile)))
                     return null;
-            if (LaunchFFmpeg($"-i \"{leftFile}\" -i \"{rightFile}\" -filter_complex [0:v][1:v]{(sbs ? 'h' : 'v')}stack=inputs=2[v] " +
-                $"-map [v] -c:v {VideoFormat} {subsampling} {extraModifiers} -crf {CRF3D} -v error -stats \"{fileName}\"")) {
+            if (LaunchFFmpeg($"-i \"{leftFile}\" -i \"{rightFile}\" -filter_complex" +
+                $" [0:v][1:v]{(sbs ? 'h' : 'v')}stack=inputs=2[v] -map [v] -c:v {VideoFormat} {subsampling} {extraModifiers}" +
+                $" -crf {CRF3D} -v error -stats \"{fileName}\"")) {
                 if (!File.Exists(fileName))
                     return null;
                 File.Delete(leftFile);
@@ -184,15 +186,51 @@ namespace DCP_Ripper.Processing {
         public string ProcessVideo2K(Reel content) => ProcessVideo(content, Is4K ? "-vf scale=iw/2:ih/2" : string.Empty);
 
         /// <summary>
+        /// Downmix a WAV file to 5.1 while keeping the gains.
+        /// </summary>
+        static void DownmixTo51(string path) {
+            float[][] data = null;
+            RIFFWaveReader reader = new(path);
+            reader.ReadHeader();
+            if (reader.ChannelCount > 6) {
+                data = reader.ReadMultichannel();
+                // 6-7 are hearing/visually impaired tracks, 12+ are sync signals
+                for (int i = 8; i < Math.Min(data.Length, 12); ++i)
+                    WaveformUtils.Mix(data[i], data[4 + i % 2]);
+            }
+            reader.Dispose();
+            if (data == null)
+                return;
+            Array.Resize(ref data, 6);
+            RIFFWaveWriter.Write(path, data, reader.SampleRate, reader.Bits);
+        }
+
+        /// <summary>
         /// Process the audio file of a content. The created file will have the same name,
         /// but in Matroska format, which is the returned value.
         /// </summary>
-        public string ProcessAudio(Reel content) {
+        public string ProcessAudio(Reel content, bool downmixTo51) {
             if (content.audioFile == null || !File.Exists(content.audioFile))
                 return null;
             string fileName = GetStreamExportPath(content.audioFile);
             if (!Overwrite && File.Exists(fileName))
                 return fileName;
+            if (downmixTo51) {
+                string tempName = fileName[..(fileName.LastIndexOf('.') + 1)] + "wav";
+                string args = string.Format("-i \"{0}\" -ss {1} -t {2} -c:a pcm_s24le -v error -stats \"{3}\"",
+                    content.audioFile,
+                    (content.audioStartFrame / content.framerate).ToString("0.000").Replace(',', '.'),
+                    (content.duration / content.framerate).ToString("0.000").Replace(',', '.'),
+                    tempName);
+                bool tempMade = LaunchFFmpeg(args);
+                if (!tempMade)
+                    return null;
+                DownmixTo51(tempName);
+                string result =
+                    LaunchFFmpeg($"-i \"{tempName}\" -c:a {AudioFormat} -v error -stats \"{fileName}\"") ? fileName : null;
+                File.Delete(tempName);
+                return result;
+            }
             return LaunchFFmpeg(string.Format("-i \"{0}\" -ss {1} -t {2} -c:a {3} -v error -stats \"{4}\"",
                 content.audioFile,
                 (content.audioStartFrame / content.framerate).ToString("0.000").Replace(',', '.'),
@@ -218,7 +256,8 @@ namespace DCP_Ripper.Processing {
         /// Process the video files of this DCP. Returns if all reels were successfully processed.
         /// </summary>
         /// <param name="force2K">Downscale 4K content to 2K</param>
-        public bool ProcessComposition(bool force2K = false) {
+        /// <param name="downmixTo51">Downmix 5.1 rear or 7.1 audio to 5.1 and keep the gain</param>
+        public bool ProcessComposition(bool force2K, bool downmixTo51) {
             int reelsDone = 0;
             for (int i = 0, length = Contents.Count; i < length; ++i) {
                 if (Contents[i].needsKey || Contents[i].videoFile == null)
@@ -233,7 +272,7 @@ namespace DCP_Ripper.Processing {
                     continue;
                 }
                 string video = force2K ? ProcessVideo2K(Contents[i]) : ProcessVideo(Contents[i]);
-                string audio = ProcessAudio(Contents[i]);
+                string audio = ProcessAudio(Contents[i], downmixTo51);
                 if (video != null && audio != null && Merge(video, audio, fileName))
                     ++reelsDone;
             }

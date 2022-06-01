@@ -22,7 +22,7 @@ namespace DCP_Ripper {
         /// <summary>
         /// Content conversion manager.
         /// </summary>
-        readonly ListProcessor processor = new ListProcessor();
+        readonly ListProcessor processor = new();
 
         /// <summary>
         /// Window constructor.
@@ -44,7 +44,7 @@ namespace DCP_Ripper {
                 processLabel.Text = "FFmpeg isn't found, please locate.";
         }
 
-        void ComboBoxSelect(ComboBox source, string value) {
+        static void ComboBoxSelect(ComboBox source, string value) {
             foreach (ComboBoxItem item in source.Items)
                 item.IsSelected = item.Name.Equals(value);
         }
@@ -54,7 +54,7 @@ namespace DCP_Ripper {
             foundContent.Items.Clear();
             foreach (string composition in processor.Compositions) {
                 string title = Finder.GetCPLTitle(composition);
-                CompositionInfo info = new CompositionInfo(title);
+                CompositionInfo info = new(title);
                 foundContent.Items.Add(new ListViewItem() {
                     Background = info.GetBrush(),
                     Content = title
@@ -70,6 +70,7 @@ namespace DCP_Ripper {
             ComboBoxSelect(mode3d, Settings.Default.mode3d);
             downscale.IsChecked = processor.Force2K = Settings.Default.downscale;
             ComboBoxSelect(audio, Settings.Default.audio);
+            downmix.IsChecked = processor.DownmixTo51 = Settings.Default.downmix;
             zipAfter.IsChecked = processor.ZipAfter = Settings.Default.zipAfter;
             deleteAfter.IsChecked = processor.DeleteAfter = Settings.Default.deleteAftter;
             CheckFFmpeg(Settings.Default.ffmpegLocation);
@@ -91,14 +92,13 @@ namespace DCP_Ripper {
         }
 
         void OpenFolder_Click(object sender, RoutedEventArgs e) {
-            using (var dialog = new FolderBrowserDialog()) {
-                if (Directory.Exists(Settings.Default.lastOpenFolder))
-                    dialog.SelectedPath = Settings.Default.lastOpenFolder;
-                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
-                    OpenFolder(dialog.SelectedPath);
-                    Settings.Default.lastOpenFolder = dialog.SelectedPath;
-                    Settings.Default.Save();
-                }
+            using var dialog = new FolderBrowserDialog();
+            if (Directory.Exists(Settings.Default.lastOpenFolder))
+                dialog.SelectedPath = Settings.Default.lastOpenFolder;
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                OpenFolder(dialog.SelectedPath);
+                Settings.Default.lastOpenFolder = dialog.SelectedPath;
+                Settings.Default.Save();
             }
         }
 
@@ -110,13 +110,17 @@ namespace DCP_Ripper {
         }
 
         void Format_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            string format = ((ComboBoxItem)((ComboBox)sender).SelectedItem).Name;
+            if (((ComboBox)sender).SelectedItem is not ComboBoxItem item)
+                return;
+            string format = item.Name;
             processor.VideoFormat = format.StartsWith("x265") ? "libx265" : "libx264";
             processor.ChromaSubsampling = format.Contains("420");
         }
 
         void CRF_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            processor.CRF = int.Parse(((ComboBoxItem)((ComboBox)sender).SelectedItem).Name.Substring(3));
+            if (((ComboBox)sender).SelectedItem is not ComboBoxItem item)
+                return;
+            processor.CRF = int.Parse(item.Name[3..]);
             if (matchCRF != null && matchCRF.IsChecked.Value)
                 processor.CRF3D = processor.CRF;
         }
@@ -135,7 +139,7 @@ namespace DCP_Ripper {
             if (matchCRF != null && matchCRF.IsChecked.Value)
                 processor.CRF3D = processor.CRF;
             else
-                processor.CRF3D = int.Parse(((ComboBoxItem)((ComboBox)sender).SelectedItem).Name.Split('_')[0].Substring(3));
+                processor.CRF3D = int.Parse(((ComboBoxItem)((ComboBox)sender).SelectedItem).Name.Split('_')[0][3..]);
         }
 
         void Mode3D_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
@@ -144,6 +148,8 @@ namespace DCP_Ripper {
         void Downscale_Unchecked(object sender, RoutedEventArgs e) => processor.Force2K = false;
         void Audio_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
             processor.AudioFormat = ((ComboBoxItem)((ComboBox)sender).SelectedItem).Name;
+        void Downmix_Checked(object sender, RoutedEventArgs e) => processor.DownmixTo51 = true;
+        void Downmix_Unchecked(object sender, RoutedEventArgs e) => processor.DownmixTo51 = false;
         void ZipAfter_Checked(object sender, RoutedEventArgs e) => processor.ZipAfter = true;
         void ZipAfter_Unchecked(object sender, RoutedEventArgs e) => processor.ZipAfter = false;
         void DeleteAfter_Checked(object sender, RoutedEventArgs e) => processor.DeleteAfter = true;
@@ -178,12 +184,11 @@ namespace DCP_Ripper {
         }
 
         void LocateFFmpeg_Click(object sender, RoutedEventArgs e) {
-            using (var dialog = new FolderBrowserDialog()) {
-                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
-                    CheckFFmpeg(dialog.SelectedPath);
-                    Settings.Default.ffmpegLocation = dialog.SelectedPath;
-                    Settings.Default.Save();
-                }
+            using FolderBrowserDialog dialog = new();
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                CheckFFmpeg(dialog.SelectedPath);
+                Settings.Default.ffmpegLocation = dialog.SelectedPath;
+                Settings.Default.Save();
             }
         }
 
@@ -213,14 +218,15 @@ namespace DCP_Ripper {
                 else
                     outputParent.IsChecked = true;
             }
-            if (outputCustom.IsChecked.Value)
-                outputCustom.Content =
-                    $"Custom ({(processor.OutputPath.Length < 4 ? processor.OutputPath : Path.GetFileName(processor.OutputPath))})";
+            if (outputCustom.IsChecked.Value) {
+                string outPath = processor.OutputPath;
+                outputCustom.Content = $"Custom ({(outPath.Length < 4 ? outPath : Path.GetFileName(outPath))})";
+            }
         }
 
         void FailureList_Click(object sender, RoutedEventArgs e) => MessageBox.Show(failedContent, "Failed contents");
 
-        void Window_Closed(object sender, System.EventArgs e) {
+        void Window_Closed(object sender, EventArgs e) {
             Settings.Default.format = ((ComboBoxItem)format.SelectedItem).Name;
             Settings.Default.crf = ((ComboBoxItem)crf.SelectedItem).Name;
             Settings.Default.matchCRF = matchCRF.IsChecked.Value;
@@ -228,6 +234,7 @@ namespace DCP_Ripper {
             Settings.Default.mode3d = ((ComboBoxItem)mode3d.SelectedItem).Name;
             Settings.Default.downscale = processor.Force2K;
             Settings.Default.audio = ((ComboBoxItem)audio.SelectedItem).Name;
+            Settings.Default.downmix = processor.DownmixTo51;
             Settings.Default.outputPath = processor.OutputPath;
             Settings.Default.zipAfter = processor.ZipAfter;
             Settings.Default.deleteAftter = processor.DeleteAfter;

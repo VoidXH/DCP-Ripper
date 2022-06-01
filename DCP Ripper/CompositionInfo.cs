@@ -64,7 +64,7 @@ namespace DCP_Ripper {
         static readonly string[] contentTypes = Enum.GetNames(typeof(ContentType));
         static readonly string[] aspects = Enum.GetNames(typeof(Framing));
         static readonly string[] versions = Enum.GetNames(typeof(Version));
-        static readonly Dictionary<ContentType, Brush> typeBackgrounds = new Dictionary<ContentType, Brush>();
+        static readonly Dictionary<ContentType, Brush> typeBackgrounds = new();
 
         /// <summary>
         /// Parse a DCNC file name.
@@ -104,11 +104,11 @@ namespace DCP_Ripper {
         static bool TryParseEnum<T>(string modifier, string[] modifiers, out T output) where T : struct {
             int splitPos = modifier.IndexOf('-');
             if (splitPos != -1)
-                modifier = modifier.Substring(splitPos + 1);
+                modifier = modifier[(splitPos + 1)..];
             modifier = '_' + modifier;
             foreach (string mod in modifiers) {
                 int secondUnderscore = mod.LastIndexOf('_');
-                string compMod = secondUnderscore == 0 ? mod : mod.Substring(0, secondUnderscore);
+                string compMod = secondUnderscore == 0 ? mod : mod[..secondUnderscore];
                 if (compMod.Equals(modifier)) {
                     output = (T)Enum.Parse(typeof(T), mod);
                     return true;
@@ -144,11 +144,11 @@ namespace DCP_Ripper {
         static bool TryParseContentType(string modifier, out ContentType contentType, out string modifiers) {
             modifiers = string.Empty;
             if (modifier.Length >= 3) {
-                string stamp = modifier.Substring(0, 3);
+                string stamp = modifier[..3];
                 foreach (string type in contentTypes) {
                     if (type.StartsWith(stamp)) {
                         contentType = (ContentType)Enum.Parse(typeof(ContentType), type);
-                        string[] contentMods = modifier.Substring(3).Split('-');
+                        string[] contentMods = modifier[3..].Split('-');
                         foreach (string mod in contentMods)
                             if (modifiers.Length == 0) modifiers = mod;
                             else modifiers += ", " + mod;
