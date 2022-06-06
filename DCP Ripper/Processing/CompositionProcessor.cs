@@ -189,20 +189,38 @@ namespace DCP_Ripper.Processing {
         /// Downmix a WAV file to 5.1 while keeping the gains.
         /// </summary>
         static void DownmixTo51(string path) {
-            float[][] data = null;
             RIFFWaveReader reader = new(path);
             reader.ReadHeader();
-            if (reader.ChannelCount > 6) {
-                data = reader.ReadMultichannel();
-                // 6-7 are hearing/visually impaired tracks, 12+ are sync signals
-                for (int i = 8; i < Math.Min(data.Length, 12); ++i)
-                    WaveformUtils.Mix(data[i], data[4 + i % 2]);
-            }
-            reader.Dispose();
-            if (data == null)
+
+            if (reader.ChannelCount <= 6) {
+                reader.Dispose();
                 return;
-            Array.Resize(ref data, 6);
-            RIFFWaveWriter.Write(path, data, reader.SampleRate, reader.Bits);
+            }
+
+            string newPath = Path.Combine(Path.GetDirectoryName(path), "_temp2.wav");
+            RIFFWaveWriter writer = new(newPath, 6, reader.Length, reader.SampleRate, reader.Bits);
+            writer.WriteHeader();
+
+            long progress = 0;
+            const long blockSize = 1 << 18; // 1 MB/channel @ 32 bits
+            float[][] inData = new float[reader.ChannelCount][],
+                outData = new float[6][];
+            for (int i = 0; i < reader.ChannelCount; ++i)
+                inData[i] = new float[blockSize];
+            while (progress < reader.Length) {
+                reader.ReadBlock(inData, 0, blockSize);
+                // 6-7 are hearing/visually impaired tracks, 12+ are sync signals
+                for (int i = 8; i < Math.Min(inData.Length, 12); ++i)
+                    WaveformUtils.Mix(inData[i], inData[4 + i % 2]);
+                Array.Copy(inData, outData, 6);
+                writer.WriteBlock(outData, 0, Math.Min(blockSize, reader.Length - progress));
+                progress += blockSize;
+            }
+
+            reader.Dispose();
+            writer.Dispose();
+            File.Delete(path);
+            File.Move(newPath, path);
         }
 
         /// <summary>
@@ -217,14 +235,16 @@ namespace DCP_Ripper.Processing {
                 return fileName;
             if (downmixTo51) {
                 string tempName = fileName[..(fileName.LastIndexOf('.') + 1)] + "wav";
-                string args = string.Format("-i \"{0}\" -ss {1} -t {2} -c:a pcm_s24le -v error -stats \"{3}\"",
-                    content.audioFile,
-                    (content.audioStartFrame / content.framerate).ToString("0.000").Replace(',', '.'),
-                    (content.duration / content.framerate).ToString("0.000").Replace(',', '.'),
-                    tempName);
-                bool tempMade = LaunchFFmpeg(args);
-                if (!tempMade)
-                    return null;
+                if (Overwrite || !File.Exists(tempName)) {
+                    string args = string.Format("-i \"{0}\" -ss {1} -t {2} -c:a pcm_s24le -v error -stats \"{3}\"",
+                        content.audioFile,
+                        (content.audioStartFrame / content.framerate).ToString("0.000").Replace(',', '.'),
+                        (content.duration / content.framerate).ToString("0.000").Replace(',', '.'),
+                        tempName);
+                    bool tempMade = LaunchFFmpeg(args);
+                    if (!tempMade)
+                        return null;
+                }
                 DownmixTo51(tempName);
                 string result =
                     LaunchFFmpeg($"-i \"{tempName}\" -c:a {AudioFormat} -v error -stats \"{fileName}\"") ? fileName : null;
