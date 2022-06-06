@@ -112,7 +112,7 @@ namespace DCP_Ripper {
                     Title += "_" + modifiers[i];
             }
             if (string.IsNullOrEmpty(Title))
-                Title = "N/A";
+                Title = modifiers[0];
             if (string.IsNullOrEmpty(Language))
                 Language = "XX";
             if (string.IsNullOrEmpty(Territory))
