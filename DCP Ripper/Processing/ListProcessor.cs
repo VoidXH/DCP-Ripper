@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using DCP_Ripper.Properties;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,62 +28,6 @@ namespace DCP_Ripper.Processing {
         /// Forced content output path. Null means default (next to video files), <see cref="parentMarker"/> means its parent.
         /// </summary>
         public string OutputPath { get; set; } = null;
-
-        /// <summary>
-        /// Video codec name for FFmpeg.
-        /// </summary>
-        public string VideoFormat { get; set; } = "libx265";
-
-        /// <summary>
-        /// Use chroma subsampling.
-        /// </summary>
-        public bool ChromaSubsampling { get; set; } = false;
-
-        /// <summary>
-        /// Constant Rate Factor for AVC/HEVC codecs.
-        /// </summary>
-        public int CRF { get; set; } = 23;
-
-        /// <summary>
-        /// Constant Rate Factor for AVC/HEVC codecs when ripping 3D content.
-        /// </summary>
-        public int CRF3D { get; set; } = 18;
-
-        /// <summary>
-        /// 3D ripping mode.
-        /// </summary>
-        public Mode3D StereoMode { get; set; } = Mode3D.HalfSideBySide;
-
-        /// <summary>
-        /// Downscale 4K content to 2K.
-        /// </summary>
-        public bool Force2K { get; set; } = true;
-
-        /// <summary>
-        /// Audio codec name for FFmpeg.
-        /// </summary>
-        public string AudioFormat { get; set; } = "libopus";
-
-        /// <summary>
-        /// Apply a 5.1 downmix before encoding the audio to keep the gain of 5.1 rear tracks.
-        /// Otherwise it will result in -3 dB gain for the actual surround channels.
-        /// </summary>
-        public bool DownmixTo51 { get; set; } = false;
-
-        /// <summary>
-        /// Zip the composition after conversion.
-        /// </summary>
-        public bool ZipAfter { get; set; } = false;
-
-        /// <summary>
-        /// Delete the composition after conversion.
-        /// </summary>
-        public bool DeleteAfter { get; set; } = false;
-
-        /// <summary>
-        /// Overwrite previously completed or interrupted files (streams and final files).
-        /// </summary>
-        public bool Overwrite { get; set; } = false;
 
         /// <summary>
         /// Process state update.
@@ -140,22 +85,15 @@ namespace DCP_Ripper.Processing {
                     finalOutput = sourceFolder[..index];
                 }
                 CompositionProcessor processor = new(FFmpegPath, composition) {
-                    ForcePath = finalOutput,
-                    Overwrite = Overwrite,
-                    VideoFormat = VideoFormat,
-                    ChromaSubsampling = ChromaSubsampling,
-                    CRF = CRF,
-                    CRF3D = CRF3D,
-                    StereoMode = StereoMode,
-                    AudioFormat = AudioFormat
+                    ForcePath = finalOutput
                 };
-                if (processor.ProcessComposition(Force2K, DownmixTo51)) {
+                if (processor.ProcessComposition()) {
                     ++finished;
-                    if (ZipAfter) {
+                    if (Settings.Default.zipAfter) {
                         OnStatusUpdate?.Invoke($"Zipping {title}...");
                         Finder.ZipAssets(sourceFolder, $"{finalOutput}\\{title}.zip", textOut => OnStatusUpdate(textOut));
                     }
-                    if (DeleteAfter)
+                    if (Settings.Default.deleteAftter)
                         Finder.DeleteAssets(sourceFolder);
                 } else
                     failures.AppendLine("Conversion error: " + title);

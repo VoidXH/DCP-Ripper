@@ -49,10 +49,10 @@ namespace DCP_Ripper.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("crf23")]
-        public string crf {
+        [global::System.Configuration.DefaultSettingValueAttribute("23")]
+        public int crf {
             get {
-                return ((string)(this["crf"]));
+                return ((int)(this["crf"]));
             }
             set {
                 this["crf"] = value;
@@ -73,10 +73,10 @@ namespace DCP_Ripper.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("crf18_3d")]
-        public string crf3d {
+        [global::System.Configuration.DefaultSettingValueAttribute("18")]
+        public int crf3d {
             get {
-                return ((string)(this["crf3d"]));
+                return ((int)(this["crf3d"]));
             }
             set {
                 this["crf3d"] = value;
@@ -200,6 +200,18 @@ namespace DCP_Ripper.Properties {
             }
             set {
                 this["width"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool overwrite {
+            get {
+                return ((bool)(this["overwrite"]));
+            }
+            set {
+                this["overwrite"] = value;
             }
         }
     }

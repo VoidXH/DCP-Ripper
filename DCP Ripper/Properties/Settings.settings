@@ -8,14 +8,14 @@
     <Setting Name="format" Type="System.String" Scope="User">
       <Value Profile="(Default)">x265_444</Value>
     </Setting>
-    <Setting Name="crf" Type="System.String" Scope="User">
-      <Value Profile="(Default)">crf23</Value>
+    <Setting Name="crf" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">23</Value>
     </Setting>
     <Setting Name="matchCRF" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="crf3d" Type="System.String" Scope="User">
-      <Value Profile="(Default)">crf18_3d</Value>
+    <Setting Name="crf3d" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">18</Value>
     </Setting>
     <Setting Name="audio" Type="System.String" Scope="User">
       <Value Profile="(Default)">libopus</Value>
@@ -46,6 +46,9 @@
     </Setting>
     <Setting Name="width" Type="System.Double" Scope="User">
       <Value Profile="(Default)">800</Value>
+    </Setting>
+    <Setting Name="overwrite" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>
 </SettingsFile>

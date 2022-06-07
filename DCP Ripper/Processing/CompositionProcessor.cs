@@ -1,5 +1,6 @@
 ﻿using Cavern.Format;
 using Cavern.Utilities;
+using DCP_Ripper.Properties;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,53 +27,44 @@ namespace DCP_Ripper.Processing {
         public string ForcePath { get; set; } = null;
 
         /// <summary>
-        /// Overwrite previously completed or interrupted files (streams and final files).
-        /// </summary>
-        public bool Overwrite { get; set; } = false;
-
-        /// <summary>
         /// This composition is 4K.
         /// </summary>
         public bool Is4K { get; private set; }
 
         /// <summary>
+        /// List of reel data in this composition.
+        /// </summary>
+        public IReadOnlyList<Reel> Contents { get; private set; }
+
+        /// <summary>
         /// Video codec name for FFmpeg.
         /// </summary>
-        public string VideoFormat { get; set; } = "libx265";
+        static string VideoFormat => Settings.Default.format.StartsWith("x265") ? "libx265" : "libx264";
 
         /// <summary>
         /// Use chroma subsampling.
         /// </summary>
-        public bool ChromaSubsampling {
-            get => VideoFormat.Equals("libx264") || chromaSubsampling;
-            set => chromaSubsampling = value;
-        }
-        bool chromaSubsampling = false;
+        static bool ChromaSubsampling => Settings.Default.format.Contains("420");
 
         /// <summary>
         /// Constant Rate Factor for AVC/HEVC codecs.
         /// </summary>
-        public int CRF { get; set; } = 23;
+        static int CRF => Settings.Default.crf;
 
         /// <summary>
         /// Constant Rate Factor for AVC/HEVC codecs when ripping 3D content.
         /// </summary>
-        public int CRF3D { get; set; } = 18;
+        static int CRF3D => Settings.Default.crf3d;
 
         /// <summary>
         /// 3D ripping mode.
         /// </summary>
-        public Mode3D StereoMode { get; set; } = Mode3D.HalfSideBySide;
+        static Mode3D StereoMode => (Mode3D)Enum.Parse(typeof(Mode3D), Settings.Default.mode3d);
 
         /// <summary>
         /// Audio codec name for FFmpeg.
         /// </summary>
-        public string AudioFormat { get; set; } = "libopus";
-
-        /// <summary>
-        /// List of reel data in this composition.
-        /// </summary>
-        public IReadOnlyList<Reel> Contents { get; private set; }
+        static string AudioFormat => Settings.Default.audio;
 
         /// <summary>
         /// Path of FFmpeg.
@@ -137,7 +129,7 @@ namespace DCP_Ripper.Processing {
             if (content.videoFile == null || !File.Exists(content.videoFile))
                 return null;
             string fileName = GetStreamExportPath(content.videoFile);
-            if (!Overwrite && File.Exists(fileName))
+            if (!Settings.Default.overwrite && File.Exists(fileName))
                 return fileName;
             string videoStart = (content.videoStartFrame / content.framerate).ToString("0.000").Replace(',', '.');
             string length = (content.duration / content.framerate).ToString("0.000").Replace(',', '.');
@@ -158,12 +150,12 @@ namespace DCP_Ripper.Processing {
             bool halfSize = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.HalfOverUnder;
             bool sbs = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.SideBySide;
             string leftFile = content.videoFile.Replace(".mxf", "_L.mkv").Replace(".MXF", "_L.mkv");
-            if (Overwrite || !File.Exists(leftFile))
+            if (Settings.Default.overwrite || !File.Exists(leftFile))
                 if (!LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length,
                     EyeFilters(true, halfSize, sbs), VideoFormat, lowerCRF, leftFile)))
                     return null;
             string rightFile = content.videoFile.Replace(".mxf", "_R.mkv").Replace(".MXF", "_R.mkv");
-            if (Overwrite || !File.Exists(rightFile))
+            if (Settings.Default.overwrite || !File.Exists(rightFile))
                 if (!LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length,
                     EyeFilters(false, halfSize, sbs), VideoFormat, lowerCRF, rightFile)))
                     return null;
@@ -227,15 +219,15 @@ namespace DCP_Ripper.Processing {
         /// Process the audio file of a content. The created file will have the same name,
         /// but in Matroska format, which is the returned value.
         /// </summary>
-        public string ProcessAudio(Reel content, bool downmixTo51) {
+        public string ProcessAudio(Reel content) {
             if (content.audioFile == null || !File.Exists(content.audioFile))
                 return null;
             string fileName = GetStreamExportPath(content.audioFile);
-            if (!Overwrite && File.Exists(fileName))
+            if (!Settings.Default.overwrite && File.Exists(fileName))
                 return fileName;
-            if (downmixTo51) {
+            if (Settings.Default.downmix) {
                 string tempName = fileName[..(fileName.LastIndexOf('.') + 1)] + "wav";
-                if (Overwrite || !File.Exists(tempName)) {
+                if (Settings.Default.overwrite || !File.Exists(tempName)) {
                     string args = string.Format("-i \"{0}\" -ss {1} -t {2} -c:a pcm_s24le -v error -stats \"{3}\"",
                         content.audioFile,
                         (content.audioStartFrame / content.framerate).ToString("0.000").Replace(',', '.'),
@@ -275,9 +267,7 @@ namespace DCP_Ripper.Processing {
         /// <summary>
         /// Process the video files of this DCP. Returns if all reels were successfully processed.
         /// </summary>
-        /// <param name="force2K">Downscale 4K content to 2K</param>
-        /// <param name="downmixTo51">Downmix 5.1 rear or 7.1 audio to 5.1 and keep the gain</param>
-        public bool ProcessComposition(bool force2K, bool downmixTo51) {
+        public bool ProcessComposition() {
             int reelsDone = 0;
             for (int i = 0, length = Contents.Count; i < length; ++i) {
                 if (Contents[i].needsKey || Contents[i].videoFile == null)
@@ -285,14 +275,14 @@ namespace DCP_Ripper.Processing {
                 string path = ForcePath;
                 if (path == null)
                     path = Path.GetDirectoryName(Contents[i].videoFile);
-                string outputTitle = force2K ? Title.Replace("_4K", "_2K") : Title;
+                string outputTitle = Settings.Default.downscale ? Title.Replace("_4K", "_2K") : Title;
                 string fileName = Path.Combine(path, length == 1 ? outputTitle + ".mkv" : $"{outputTitle}_{i + 1}.mkv");
-                if (!Overwrite && File.Exists(fileName)) {
+                if (!Settings.Default.overwrite && File.Exists(fileName)) {
                     ++reelsDone;
                     continue;
                 }
-                string video = force2K ? ProcessVideo2K(Contents[i]) : ProcessVideo(Contents[i]);
-                string audio = ProcessAudio(Contents[i], downmixTo51);
+                string video = Settings.Default.downscale ? ProcessVideo2K(Contents[i]) : ProcessVideo(Contents[i]);
+                string audio = ProcessAudio(Contents[i]);
                 if (video != null && audio != null && Merge(video, audio, fileName))
                     ++reelsDone;
             }

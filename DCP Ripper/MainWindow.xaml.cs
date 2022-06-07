@@ -16,6 +16,11 @@ namespace DCP_Ripper {
     /// </summary>
     public partial class MainWindow : Window {
         /// <summary>
+        /// Selected 2D constant rate factor.
+        /// </summary>
+        int CRF => int.Parse(((ComboBoxItem)crf.SelectedItem).Name[3..]);
+
+        /// <summary>
         /// List of content that could not be processed.
         /// </summary>
         string failedContent;
@@ -63,15 +68,16 @@ namespace DCP_Ripper {
 
         void Window_Loaded(object sender, RoutedEventArgs e) {
             ComboBoxSelect(format, Settings.Default.format);
-            ComboBoxSelect(crf, Settings.Default.crf);
+            ComboBoxSelect(crf, "crf" + Settings.Default.crf);
             matchCRF.IsChecked = Settings.Default.matchCRF;
-            ComboBoxSelect(crf3d, Settings.Default.crf3d);
+            ComboBoxSelect(crf3d, $"crf{Settings.Default.crf3d}_3d");
             ComboBoxSelect(mode3d, Settings.Default.mode3d);
-            downscale.IsChecked = processor.Force2K = Settings.Default.downscale;
+            downscale.IsChecked = Settings.Default.downscale;
             ComboBoxSelect(audio, Settings.Default.audio);
-            downmix.IsChecked = processor.DownmixTo51 = Settings.Default.downmix;
-            zipAfter.IsChecked = processor.ZipAfter = Settings.Default.zipAfter;
-            deleteAfter.IsChecked = processor.DeleteAfter = Settings.Default.deleteAftter;
+            downmix.IsChecked = Settings.Default.downmix;
+            zipAfter.IsChecked = Settings.Default.zipAfter;
+            deleteAfter.IsChecked = Settings.Default.deleteAftter;
+            overwrite.IsChecked = Settings.Default.overwrite;
             CheckFFmpeg(Settings.Default.ffmpegLocation);
             switch (Settings.Default.outputPath) {
                 case "":
@@ -86,7 +92,6 @@ namespace DCP_Ripper {
                     break;
             }
             outputCustom.Checked += OutputCustom_Checked;
-            mode3d.SelectionChanged += Mode3D_SelectionChanged;
             Refresh_Click(null, null);
         }
 
@@ -108,56 +113,26 @@ namespace DCP_Ripper {
                 OpenFolder(Settings.Default.lastOpenFolder);
         }
 
-        void Format_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            if (((ComboBox)sender).SelectedItem is not ComboBoxItem item)
-                return;
-            string format = item.Name;
-            processor.VideoFormat = format.StartsWith("x265") ? "libx265" : "libx264";
-            processor.ChromaSubsampling = format.Contains("420");
-        }
+        void MatchCRF() => ComboBoxSelect(crf3d, $"crf{CRF}_3d");
 
         void CRF_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            if (((ComboBox)sender).SelectedItem is not ComboBoxItem item)
-                return;
-            processor.CRF = int.Parse(item.Name[3..]);
             if (matchCRF != null && matchCRF.IsChecked.Value)
-                processor.CRF3D = processor.CRF;
+                MatchCRF();
         }
 
         void MatchCRF_Checked(object sender, RoutedEventArgs e) {
             crf3d.IsEnabled = false;
-            CRF3D_SelectionChanged(crf3d, null);
+            MatchCRF();
         }
 
         void MatchCRF_Unchecked(object sender, RoutedEventArgs e) {
             crf3d.IsEnabled = true;
-            CRF3D_SelectionChanged(crf3d, null);
+            MatchCRF();
         }
-
-        void CRF3D_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            if (matchCRF != null && matchCRF.IsChecked.Value)
-                processor.CRF3D = processor.CRF;
-            else
-                processor.CRF3D = int.Parse(((ComboBoxItem)((ComboBox)sender).SelectedItem).Name.Split('_')[0][3..]);
-        }
-
-        void Mode3D_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
-            processor.StereoMode = (Mode3D)Enum.Parse(typeof(Mode3D), ((ComboBoxItem)((ComboBox)sender).SelectedItem).Name);
-        void Downscale_Checked(object sender, RoutedEventArgs e) => processor.Force2K = true;
-        void Downscale_Unchecked(object sender, RoutedEventArgs e) => processor.Force2K = false;
-        void Audio_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
-            processor.AudioFormat = ((ComboBoxItem)((ComboBox)sender).SelectedItem).Name;
-        void Downmix_Checked(object sender, RoutedEventArgs e) => processor.DownmixTo51 = true;
-        void Downmix_Unchecked(object sender, RoutedEventArgs e) => processor.DownmixTo51 = false;
-        void ZipAfter_Checked(object sender, RoutedEventArgs e) => processor.ZipAfter = true;
-        void ZipAfter_Unchecked(object sender, RoutedEventArgs e) => processor.ZipAfter = false;
-        void DeleteAfter_Checked(object sender, RoutedEventArgs e) => processor.DeleteAfter = true;
-        void DeleteAfter_Unchecked(object sender, RoutedEventArgs e) => processor.DeleteAfter = false;
-        void Overwrite_Checked(object sender, RoutedEventArgs e) => processor.Overwrite = true;
-        void Overwrite_Unchecked(object sender, RoutedEventArgs e) => processor.Overwrite = false;
 
         async void Start_Click(object sender, RoutedEventArgs e) {
             failureList.Visibility = Visibility.Hidden;
+            ApplySettings();
             await processor.ProcessAsync();
         }
 
@@ -172,7 +147,7 @@ namespace DCP_Ripper {
         /// <param name="finished">Number of successful conversions</param>
         void AfterProcess(int finished) {
             int processed = processor.Compositions.Count;
-            if (processor.DeleteAfter)
+            if (Settings.Default.deleteAftter)
                 Dispatcher.Invoke(() => Refresh_Click(null, null));
             if (finished == processed)
                 return;
@@ -225,20 +200,25 @@ namespace DCP_Ripper {
 
         void FailureList_Click(object sender, RoutedEventArgs e) => MessageBox.Show(failedContent, "Failed contents");
 
-        void Window_Closed(object sender, EventArgs e) {
+        void ApplySettings() {
             Settings.Default.format = ((ComboBoxItem)format.SelectedItem).Name;
-            Settings.Default.crf = ((ComboBoxItem)crf.SelectedItem).Name;
+            Settings.Default.crf = int.Parse(((ComboBoxItem)crf.SelectedItem).Name[3..]);
             Settings.Default.matchCRF = matchCRF.IsChecked.Value;
-            Settings.Default.crf3d = ((ComboBoxItem)crf3d.SelectedItem).Name;
+            Settings.Default.crf3d = int.Parse(((ComboBoxItem)crf3d.SelectedItem).Name[3..^3]);
             Settings.Default.mode3d = ((ComboBoxItem)mode3d.SelectedItem).Name;
-            Settings.Default.downscale = processor.Force2K;
+            Settings.Default.downscale = downscale.IsChecked.Value;
             Settings.Default.audio = ((ComboBoxItem)audio.SelectedItem).Name;
-            Settings.Default.downmix = processor.DownmixTo51;
+            Settings.Default.downmix = downmix.IsChecked.Value;
             Settings.Default.outputPath = processor.OutputPath;
-            Settings.Default.zipAfter = processor.ZipAfter;
-            Settings.Default.deleteAftter = processor.DeleteAfter;
+            Settings.Default.zipAfter = zipAfter.IsChecked.Value;
+            Settings.Default.deleteAftter = deleteAfter.IsChecked.Value;
+            Settings.Default.overwrite = overwrite.IsChecked.Value;
             Settings.Default.width = Width;
             Settings.Default.height = Height;
+        }
+
+        void Window_Closed(object sender, EventArgs e) {
+            ApplySettings();
             Settings.Default.Save();
         }
     }

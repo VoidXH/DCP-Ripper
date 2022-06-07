@@ -50,9 +50,10 @@
         <GroupBox x:Name="videoBox" Grid.Column="1" Header="Video settings" Margin="10,10,10,0" Height="186" VerticalAlignment="Top">
             <Grid>
                 <TextBlock Text="Format:" HorizontalAlignment="Left" Margin="10,13,0,0" VerticalAlignment="Top"/>
-                <ComboBox x:Name="format" Margin="55,10,10,0" VerticalAlignment="Top" SelectionChanged="Format_SelectionChanged">
-                    <ComboBoxItem Name="x265_444" Content="HEVC RExt 4:4:4 (PC)" IsSelected="True"/>
+                <ComboBox x:Name="format" Margin="55,10,10,0" VerticalAlignment="Top">
+                    <ComboBoxItem Name="x265_444" Content="HEVC RExt 4:4:4 (PCs)" IsSelected="True"/>
                     <ComboBoxItem Name="x265_420" Content="HEVC 4:2:0 (HEVC players)"/>
+                    <ComboBoxItem Name="x264_444" Content="AVC 4:4:4 (slower PCs)"/>
                     <ComboBoxItem Name="x264_420" Content="AVC 4:2:0 (AVC players)"/>
                 </ComboBox>
                 <TextBlock Text="CRF:" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top"/>
@@ -67,7 +68,7 @@
                 </ComboBox>
                 <CheckBox x:Name="matchCRF" Content="Use same CRF for 3D content" HorizontalAlignment="Left" Margin="10,64,0,0" VerticalAlignment="Top" Checked="MatchCRF_Checked" Unchecked="MatchCRF_Unchecked"/>
                 <TextBlock Text="3D CRF:" HorizontalAlignment="Left" Margin="10,87,0,0" VerticalAlignment="Top"/>
-                <ComboBox x:Name="crf3d" Margin="56,84,10,0" VerticalAlignment="Top" SelectionChanged="CRF3D_SelectionChanged">
+                <ComboBox x:Name="crf3d" Margin="56,84,10,0" VerticalAlignment="Top">
                     <ComboBoxItem Name="crf0_3d" Content="0 (lossless)"/>
                     <ComboBoxItem Name="crf8_3d" Content="8 (practially lossless)"/>
                     <ComboBoxItem Name="crf13_3d" Content="13 (transparent)"/>
@@ -87,13 +88,13 @@
                     <ComboBoxItem Name="LeftEye" Content="Left eye retaining 2D"/>
                     <ComboBoxItem Name="RightEye" Content="Right eye retaining 2D"/>
                 </ComboBox>
-                <CheckBox x:Name="downscale" Content="Downscale 4K content to 2K" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,138,0,0" Checked="Downscale_Checked" Unchecked="Downscale_Unchecked"/>
+                <CheckBox x:Name="downscale" Content="Downscale 4K content to 2K" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,138,0,0"/>
             </Grid>
         </GroupBox>
         <GroupBox x:Name="audioBox" Grid.Column="1" Header="Audio settings" Height="85" Margin="10,201,10,0" VerticalAlignment="Top">
             <Grid>
                 <TextBlock x:Name="audioLabel" Text="Format:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,13,0,0"/>
-                <ComboBox x:Name="audio" HorizontalAlignment="Right" Width="153" Margin="0,10,10,0" VerticalAlignment="Top" SelectionChanged="Audio_SelectionChanged">
+                <ComboBox x:Name="audio" HorizontalAlignment="Right" Width="153" Margin="0,10,10,0" VerticalAlignment="Top">
                     <ComboBoxItem x:Name="aac" Content="AAC (low quality, small, 5.1 only)"/>
                     <ComboBoxItem x:Name="eac3" Content="Dolby Digital+ (high quality, medium, 5.1 only)"/>
                     <ComboBoxItem x:Name="libvorbis" Content="Vorbis (high quality, small)"/>
@@ -104,7 +105,6 @@
                 </ComboBox>
                 <CheckBox x:Name="downmix" Content="Gain-keeping 5.1 downmix"
                           HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,37,0,0"
-                          Checked="Downmix_Checked" Unchecked="Downmix_Unchecked"
                           ToolTip="Apply a 5.1 downmix before encoding the audio to keep the gain of 5.1 rear tracks.
  Otherwise it will result in -3 dB gain for the actual surround channels."/>
             </Grid>
@@ -125,11 +125,11 @@
                 </GroupBox>
                 <GroupBox Header="After completion" Height="58" Margin="10,131,10,0" VerticalAlignment="Top">
                     <Grid>
-                        <CheckBox x:Name="zipAfter" Content="Zip" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Checked="ZipAfter_Checked" Unchecked="ZipAfter_Unchecked"/>
-                        <CheckBox x:Name="deleteAfter" Content="Delete" HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top" Checked="DeleteAfter_Checked" Unchecked="DeleteAfter_Unchecked"/>
+                        <CheckBox x:Name="zipAfter" Content="Zip" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                        <CheckBox x:Name="deleteAfter" Content="Delete" HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top"/>
                     </Grid>
                 </GroupBox>
-                <CheckBox x:Name="overwrite" Content="Overwrite completed files" HorizontalAlignment="Left" Margin="10,194,0,0" VerticalAlignment="Top" Checked="Overwrite_Checked" Unchecked="Overwrite_Unchecked"/>
+                <CheckBox x:Name="overwrite" Content="Overwrite completed files" HorizontalAlignment="Left" Margin="10,194,0,0" VerticalAlignment="Top"/>
                 <TextBlock x:Name="processLabel" Text="Locating FFmpeg..." Margin="10,239,35,10" TextWrapping="Wrap"/>
                 <Button x:Name="failureList" Content="..." HorizontalAlignment="Right" Margin="0,239,10,0" Width="20" Click="FailureList_Click" Height="20" VerticalAlignment="Top"/>
             </Grid>
