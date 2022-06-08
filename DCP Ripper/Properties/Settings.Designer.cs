@@ -214,5 +214,29 @@ namespace DCP_Ripper.Properties {
                 this["overwrite"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ripVideo {
+            get {
+                return ((bool)(this["ripVideo"]));
+            }
+            set {
+                this["ripVideo"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ripAudio {
+            get {
+                return ((bool)(this["ripAudio"]));
+            }
+            set {
+                this["ripAudio"] = value;
+            }
+        }
     }
 }

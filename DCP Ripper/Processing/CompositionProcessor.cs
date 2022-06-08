@@ -233,8 +233,7 @@ namespace DCP_Ripper.Processing {
                         (content.audioStartFrame / content.framerate).ToString("0.000").Replace(',', '.'),
                         (content.duration / content.framerate).ToString("0.000").Replace(',', '.'),
                         tempName);
-                    bool tempMade = LaunchFFmpeg(args);
-                    if (!tempMade)
+                    if (!LaunchFFmpeg(args))
                         return null;
                 }
                 DownmixTo51(tempName);
@@ -281,9 +280,27 @@ namespace DCP_Ripper.Processing {
                     ++reelsDone;
                     continue;
                 }
-                string video = Settings.Default.downscale ? ProcessVideo2K(Contents[i]) : ProcessVideo(Contents[i]);
-                string audio = ProcessAudio(Contents[i]);
-                if (video != null && audio != null && Merge(video, audio, fileName))
+                string video = null;
+                if (Settings.Default.ripVideo)
+                    video = Settings.Default.downscale ? ProcessVideo2K(Contents[i]) : ProcessVideo(Contents[i]);
+                string audio = null;
+                if (Settings.Default.ripAudio)
+                    audio = ProcessAudio(Contents[i]);
+
+                if (Settings.Default.ripVideo && Settings.Default.ripAudio) {
+                    if (video != null && audio != null && Merge(video, audio, fileName))
+                        ++reelsDone;
+                } else if (Settings.Default.ripVideo) {
+                    if (video != null) {
+                        File.Move(video, fileName);
+                        ++reelsDone;
+                    }
+                } else if (Settings.Default.ripAudio) {
+                    if (audio != null) {
+                        File.Move(audio, fileName);
+                        ++reelsDone;
+                    }
+                } else
                     ++reelsDone;
             }
             return reelsDone == Contents.Count;

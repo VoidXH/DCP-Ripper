@@ -67,12 +67,14 @@ namespace DCP_Ripper {
         }
 
         void Window_Loaded(object sender, RoutedEventArgs e) {
+            ripVideo.IsChecked = Settings.Default.ripVideo;
             ComboBoxSelect(format, Settings.Default.format);
             ComboBoxSelect(crf, "crf" + Settings.Default.crf);
             matchCRF.IsChecked = Settings.Default.matchCRF;
             ComboBoxSelect(crf3d, $"crf{Settings.Default.crf3d}_3d");
             ComboBoxSelect(mode3d, Settings.Default.mode3d);
             downscale.IsChecked = Settings.Default.downscale;
+            ripAudio.IsChecked = Settings.Default.ripAudio;
             ComboBoxSelect(audio, Settings.Default.audio);
             downmix.IsChecked = Settings.Default.downmix;
             zipAfter.IsChecked = Settings.Default.zipAfter;
@@ -201,12 +203,14 @@ namespace DCP_Ripper {
         void FailureList_Click(object sender, RoutedEventArgs e) => MessageBox.Show(failedContent, "Failed contents");
 
         void ApplySettings() {
+            Settings.Default.ripVideo = ripVideo.IsChecked.Value;
             Settings.Default.format = ((ComboBoxItem)format.SelectedItem).Name;
             Settings.Default.crf = int.Parse(((ComboBoxItem)crf.SelectedItem).Name[3..]);
             Settings.Default.matchCRF = matchCRF.IsChecked.Value;
             Settings.Default.crf3d = int.Parse(((ComboBoxItem)crf3d.SelectedItem).Name[3..^3]);
             Settings.Default.mode3d = ((ComboBoxItem)mode3d.SelectedItem).Name;
             Settings.Default.downscale = downscale.IsChecked.Value;
+            Settings.Default.ripAudio = ripAudio.IsChecked.Value;
             Settings.Default.audio = ((ComboBoxItem)audio.SelectedItem).Name;
             Settings.Default.downmix = downmix.IsChecked.Value;
             Settings.Default.outputPath = processor.OutputPath;

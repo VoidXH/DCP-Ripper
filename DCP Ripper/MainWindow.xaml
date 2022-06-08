@@ -47,17 +47,19 @@
                 </DataGrid>
             </Grid>
         </GroupBox>
-        <GroupBox x:Name="videoBox" Grid.Column="1" Header="Video settings" Margin="10,10,10,0" Height="186" VerticalAlignment="Top">
+        <GroupBox x:Name="videoBox" Grid.Column="1" Header="Video settings" Margin="10,10,10,0" Height="206" VerticalAlignment="Top">
             <Grid>
-                <TextBlock Text="Format:" HorizontalAlignment="Left" Margin="10,13,0,0" VerticalAlignment="Top"/>
-                <ComboBox x:Name="format" Margin="55,10,10,0" VerticalAlignment="Top">
+                <CheckBox x:Name="ripVideo" Content="Rip video" IsChecked="True"
+                          HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                <TextBlock Text="Format:" HorizontalAlignment="Left" Margin="10,33,0,0" VerticalAlignment="Top"/>
+                <ComboBox x:Name="format" Margin="55,30,10,0" VerticalAlignment="Top">
                     <ComboBoxItem Name="x265_444" Content="HEVC RExt 4:4:4 (PCs)" IsSelected="True"/>
                     <ComboBoxItem Name="x265_420" Content="HEVC 4:2:0 (HEVC players)"/>
                     <ComboBoxItem Name="x264_444" Content="AVC 4:4:4 (slower PCs)"/>
                     <ComboBoxItem Name="x264_420" Content="AVC 4:2:0 (AVC players)"/>
                 </ComboBox>
-                <TextBlock Text="CRF:" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top"/>
-                <ComboBox x:Name="crf" Margin="38,37,10,0" VerticalAlignment="Top" SelectionChanged="CRF_SelectionChanged">
+                <TextBlock Text="CRF:" HorizontalAlignment="Left" Margin="10,60,0,0" VerticalAlignment="Top"/>
+                <ComboBox x:Name="crf" Margin="38,57,10,0" VerticalAlignment="Top" SelectionChanged="CRF_SelectionChanged">
                     <ComboBoxItem Name="crf0" Content="0 (lossless)"/>
                     <ComboBoxItem Name="crf13" Content="13 (practially lossless)"/>
                     <ComboBoxItem Name="crf18" Content="18 (transparent, 3D recommended)"/>
@@ -66,9 +68,9 @@
                     <ComboBoxItem Name="crf33" Content="33 (very low quality)"/>
                     <ComboBoxItem Name="crf51" Content="51 (lowest quality)"/>
                 </ComboBox>
-                <CheckBox x:Name="matchCRF" Content="Use same CRF for 3D content" HorizontalAlignment="Left" Margin="10,64,0,0" VerticalAlignment="Top" Checked="MatchCRF_Checked" Unchecked="MatchCRF_Unchecked"/>
-                <TextBlock Text="3D CRF:" HorizontalAlignment="Left" Margin="10,87,0,0" VerticalAlignment="Top"/>
-                <ComboBox x:Name="crf3d" Margin="56,84,10,0" VerticalAlignment="Top">
+                <CheckBox x:Name="matchCRF" Content="Use same CRF for 3D content" HorizontalAlignment="Left" Margin="10,83,0,0" VerticalAlignment="Top" Checked="MatchCRF_Checked" Unchecked="MatchCRF_Unchecked"/>
+                <TextBlock Text="3D CRF:" HorizontalAlignment="Left" Margin="10,107,0,0" VerticalAlignment="Top"/>
+                <ComboBox x:Name="crf3d" Margin="56,104,10,0" VerticalAlignment="Top">
                     <ComboBoxItem Name="crf0_3d" Content="0 (lossless)"/>
                     <ComboBoxItem Name="crf8_3d" Content="8 (practially lossless)"/>
                     <ComboBoxItem Name="crf13_3d" Content="13 (transparent)"/>
@@ -78,8 +80,8 @@
                     <ComboBoxItem Name="crf33_3d" Content="33 (very low quality)"/>
                     <ComboBoxItem Name="crf51_3d" Content="51 (lowest quality)"/>
                 </ComboBox>
-                <TextBlock Text="3D mode:" Margin="10,114,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-                <ComboBox x:Name="mode3d" Margin="66,111,10,0" VerticalAlignment="Top">
+                <TextBlock Text="3D mode:" Margin="10,134,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                <ComboBox x:Name="mode3d" Margin="66,131,10,0" VerticalAlignment="Top">
                     <ComboBoxItem Name="HalfSideBySide" Content="Half side-by-side (stream standard)" IsSelected="True"/>
                     <ComboBoxItem Name="HalfOverUnder" Content="Half over-under"/>
                     <ComboBoxItem Name="SideBySide" Content="Side-by-side"/>
@@ -88,13 +90,15 @@
                     <ComboBoxItem Name="LeftEye" Content="Left eye retaining 2D"/>
                     <ComboBoxItem Name="RightEye" Content="Right eye retaining 2D"/>
                 </ComboBox>
-                <CheckBox x:Name="downscale" Content="Downscale 4K content to 2K" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,138,0,0"/>
+                <CheckBox x:Name="downscale" Content="Downscale 4K content to 2K" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,158,0,0"/>
             </Grid>
         </GroupBox>
-        <GroupBox x:Name="audioBox" Grid.Column="1" Header="Audio settings" Height="85" Margin="10,201,10,0" VerticalAlignment="Top">
+        <GroupBox x:Name="audioBox" Grid.Column="1" Header="Audio settings" Height="105" Margin="10,221,10,0" VerticalAlignment="Top">
             <Grid>
-                <TextBlock x:Name="audioLabel" Text="Format:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,13,0,0"/>
-                <ComboBox x:Name="audio" HorizontalAlignment="Right" Width="153" Margin="0,10,10,0" VerticalAlignment="Top">
+                <CheckBox x:Name="ripAudio" Content="Rip audio" IsChecked="True"
+                          HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                <TextBlock x:Name="audioLabel" Text="Format:" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                <ComboBox x:Name="audio" HorizontalAlignment="Left" Width="153" Margin="55,0,0,0" VerticalAlignment="Center">
                     <ComboBoxItem x:Name="aac" Content="AAC (low quality, small, 5.1 only)"/>
                     <ComboBoxItem x:Name="eac3" Content="Dolby Digital+ (high quality, medium, 5.1 only)"/>
                     <ComboBoxItem x:Name="libvorbis" Content="Vorbis (high quality, small)"/>
@@ -104,7 +108,7 @@
                     <ComboBoxItem x:Name="pcm_s24le" Content="PCM 24 bit (raw, largest)"/>
                 </ComboBox>
                 <CheckBox x:Name="downmix" Content="Gain-keeping 5.1 downmix"
-                          HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,37,0,0"
+                          HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,57,0,0"
                           ToolTip="Apply a 5.1 downmix before encoding the audio to keep the gain of 5.1 rear tracks.
  Otherwise it will result in -3 dB gain for the actual surround channels."/>
             </Grid>
