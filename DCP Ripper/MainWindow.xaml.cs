@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -44,7 +45,7 @@ namespace DCP_Ripper {
         }
 
         void CheckFFmpeg(string dir) {
-            if (start.IsEnabled = File.Exists(processor.FFmpegPath = dir + "\\ffmpeg.exe"))
+            if (start.IsEnabled = startSelected.IsEnabled = File.Exists(processor.FFmpegPath = dir + "\\ffmpeg.exe"))
                 processLabel.Text = "Ready.";
             else
                 processLabel.Text = "FFmpeg isn't found, please locate.";
@@ -58,11 +59,8 @@ namespace DCP_Ripper {
         void OpenFolder(string path) {
             processor.Compositions = Finder.ProcessFolder(path);
             List<CompositionInfo> items = new();
-            foreach (string composition in processor.Compositions) {
-                string title = Finder.GetCPLTitle(composition);
-                CompositionInfo info = new(title);
-                items.Add(info);
-            }
+            foreach (string composition in processor.Compositions)
+                items.Add(new CompositionInfo(composition));
             foundContent.ItemsSource = items;
         }
 
@@ -138,6 +136,17 @@ namespace DCP_Ripper {
             await processor.ProcessAsync();
         }
 
+        async void StartSelected_Click(object sender, RoutedEventArgs e) {
+            failureList.Visibility = Visibility.Hidden;
+            ApplySettings();
+            var selected = foundContent.SelectedIndex;
+            if (selected == -1) {
+                MessageBox.Show("No content was selected.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            await processor.ProcessSelectedAsync(processor.Compositions[selected]);
+        }
+
         /// <summary>
         /// Set the content of <see cref="processLabel"/> from another thread.
         /// </summary>
@@ -151,11 +160,11 @@ namespace DCP_Ripper {
             int processed = processor.Compositions.Count;
             if (Settings.Default.deleteAftter)
                 Dispatcher.Invoke(() => Refresh_Click(null, null));
-            if (finished == processed)
+            if (finished == processed || finished == ListProcessor.SingleDone)
                 return;
-            int failureCount = processed - finished;
-            ProcessStatusUpdate($"Finished with {failureCount} failure{(failureCount > 1 ? "s" : string.Empty)}!");
             failedContent = processor.GetFailedContents();
+            int failureCount = failedContent.Count(c => c == '\n');
+            ProcessStatusUpdate($"Finished with {failureCount} failure{(failureCount > 1 ? "s" : string.Empty)}!");
             Dispatcher.Invoke(() => failureList.Visibility = Visibility.Visible);
         }
 

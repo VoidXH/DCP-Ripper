@@ -10,6 +10,11 @@ namespace DCP_Ripper.Processing {
     /// </summary>
     public class ListProcessor {
         /// <summary>
+        /// A single selected composition was successfully converted.
+        /// </summary>
+        public const int SingleDone = -1;
+
+        /// <summary>
         /// Marks the content parent folder for output path.
         /// </summary>
         public const string parentMarker = "parent";
@@ -57,60 +62,95 @@ namespace DCP_Ripper.Processing {
         StringBuilder failures;
 
         /// <summary>
-        /// Async <see cref="Process"/> handler.
+        /// Async process handler.
         /// </summary>
-        Task<int> task;
+        Task task;
+
+        /// <summary>
+        /// Process a single composition.
+        /// </summary>
+        bool ProcessSingle(string cplPath) {
+            if (!File.Exists(cplPath)) {
+                failures.AppendLine(Path.GetFileName(cplPath) + " does not exist.");
+                return false;
+            }
+            string title = Finder.GetCPLTitle(cplPath);
+            OnStatusUpdate?.Invoke($"Processing {title}...");
+            string finalOutput = OutputPath,
+                sourceFolder = Path.GetDirectoryName(cplPath);
+            if (!string.IsNullOrEmpty(OutputPath) && OutputPath.Equals(parentMarker)) {
+                finalOutput = Path.GetDirectoryName(sourceFolder);
+                if (finalOutput == null) {
+                    failures.AppendLine($"Can't output {title} above a root folder.");
+                    return false;
+                }
+            }
+
+            CompositionProcessor processor = new(FFmpegPath, cplPath) {
+                ForcePath = finalOutput
+            };
+            if (processor.ProcessComposition()) {
+                if (Settings.Default.zipAfter) {
+                    OnStatusUpdate?.Invoke($"Zipping {title}...");
+                    Finder.ZipAssets(sourceFolder, $"{finalOutput}\\{title}.zip", textOut => OnStatusUpdate(textOut));
+                }
+                if (Settings.Default.deleteAftter)
+                    Finder.DeleteAssets(sourceFolder);
+                return true;
+            } else {
+                failures.AppendLine($"Conversion of {title} failed - most likely a codec error.");
+                return false;
+            }
+        }
 
         /// <summary>
         /// Start processing the compositions.
         /// </summary>
         /// <returns>Number of successful conversions</returns>
-        public int Process() {
+        public void Process() {
             if (Compositions == null || FFmpegPath == null)
-                return 0;
+                return;
             int finished = 0;
             failures = new StringBuilder();
-            foreach (string composition in Compositions) {
-                if (!File.Exists(composition))
-                    continue;
-                string title = Finder.GetCPLTitle(composition);
-                OnStatusUpdate?.Invoke($"Processing {title}...");
-                string finalOutput = OutputPath, sourceFolder = composition[..composition.LastIndexOf('\\')];
-                if (!string.IsNullOrEmpty(OutputPath) && OutputPath.Equals(parentMarker)) {
-                    int index = sourceFolder.LastIndexOf('\\');
-                    if (index < 0) {
-                        failures.AppendLine("Drive root is an invalid directory: " + title);
-                        continue;
-                    }
-                    finalOutput = sourceFolder[..index];
-                }
-                CompositionProcessor processor = new(FFmpegPath, composition) {
-                    ForcePath = finalOutput
-                };
-                if (processor.ProcessComposition()) {
-                    ++finished;
-                    if (Settings.Default.zipAfter) {
-                        OnStatusUpdate?.Invoke($"Zipping {title}...");
-                        Finder.ZipAssets(sourceFolder, $"{finalOutput}\\{title}.zip", textOut => OnStatusUpdate(textOut));
-                    }
-                    if (Settings.Default.deleteAftter)
-                        Finder.DeleteAssets(sourceFolder);
-                } else
-                    failures.AppendLine("Conversion error: " + title);
-            }
+            foreach (string composition in Compositions)
+                ProcessSingle(composition);
             OnStatusUpdate?.Invoke("Finished!");
             OnCompletion?.Invoke(finished);
-            return finished;
+        }
+
+        /// <summary>
+        /// Start processing the selected composition.
+        /// </summary>
+        /// <returns>Number of successful conversions</returns>
+        public void ProcessSelected(string path) {
+            if (Compositions == null || FFmpegPath == null)
+                return;
+            failures = new StringBuilder();
+            int finished = ProcessSingle(path) ? SingleDone : 0;
+            OnStatusUpdate?.Invoke("Finished!");
+            OnCompletion?.Invoke(finished);
         }
 
         /// <summary>
         /// Start processing the compositions as a <see cref="Task"/>.
         /// </summary>
         /// <returns>A task with a return value of the number of successful conversions</returns>
-        public Task<int> ProcessAsync() {
+        public Task ProcessAsync() {
             if (task != null && !task.IsCompleted)
                 return task;
-            task = new Task<int>(Process);
+            task = new Task(Process);
+            task.Start();
+            return task;
+        }
+
+        /// <summary>
+        /// Start processing the selected composition as a <see cref="Task"/>.
+        /// </summary>
+        /// <returns>A task with a return value of the number of successful conversions</returns>
+        public Task ProcessSelectedAsync(string path) {
+            if (task != null && !task.IsCompleted)
+                return task;
+            task = new Task(() => ProcessSelected(path));
             task.Start();
             return task;
         }

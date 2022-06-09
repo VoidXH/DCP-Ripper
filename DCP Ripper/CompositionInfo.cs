@@ -73,8 +73,8 @@ namespace DCP_Ripper {
         /// <summary>
         /// Parse a DCNC file name.
         /// </summary>
-        public CompositionInfo(string title) {
-            string[] modifiers = title.Split('_');
+        public CompositionInfo(string path) {
+            string[] modifiers = Finder.GetCPLTitle(path).Split('_');
             bool wasDate = false,
                 wasLanguage = false;
             for (int i = 0, c = modifiers.Length; i < c; ++i) {
