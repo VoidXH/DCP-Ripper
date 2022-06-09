@@ -8,6 +8,10 @@ namespace DCP_Ripper {
     [SuppressMessage("Design", "CA1067", Justification = "No.")]
     public class CompositionInfo : IEquatable<CompositionInfo> {
         /// <summary>
+        /// Location of the composition playlist file.
+        /// </summary>
+        public string Path { get; private set; }
+        /// <summary>
         /// Complete title.
         /// </summary>
         public string Title { get; private set; }
@@ -74,6 +78,7 @@ namespace DCP_Ripper {
         /// Parse a DCNC file name.
         /// </summary>
         public CompositionInfo(string path) {
+            Path = path;
             string[] modifiers = Finder.GetCPLTitle(path).Split('_');
             bool wasDate = false,
                 wasLanguage = false;

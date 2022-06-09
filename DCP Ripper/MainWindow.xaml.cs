@@ -139,12 +139,11 @@ namespace DCP_Ripper {
         async void StartSelected_Click(object sender, RoutedEventArgs e) {
             failureList.Visibility = Visibility.Hidden;
             ApplySettings();
-            var selected = foundContent.SelectedIndex;
-            if (selected == -1) {
+            if (foundContent.SelectedItem is not CompositionInfo selected) {
                 MessageBox.Show("No content was selected.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            await processor.ProcessSelectedAsync(processor.Compositions[selected]);
+            await processor.ProcessSelectedAsync(selected.Path);
         }
 
         /// <summary>
