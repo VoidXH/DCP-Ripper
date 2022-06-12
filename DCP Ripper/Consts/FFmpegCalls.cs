@@ -134,5 +134,10 @@ namespace DCP_Ripper.Consts {
                 return videoFilterTag + result;
             return result;
         }
+
+        /// <summary>
+        /// Converts a float to the format required by FFmpeg.
+        /// </summary>
+        static string ToFFmpegNumber(this float x) => x.ToString("0.000").Replace(',', '.');
     }
 }
