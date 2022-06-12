@@ -177,14 +177,14 @@ namespace DCP_Ripper {
             else if (modifier.StartsWith("sdds", StringComparison.CurrentCultureIgnoreCase)) track = AudioTrack.SDDS;
             else if (modifier.StartsWith("cavern"))
                 track = modifier.Contains("xl") ? AudioTrack.CavernXL : AudioTrack.Cavern;
+            else if (modifier.StartsWith("imax5")) track = AudioTrack.IMAX5;
+            else if (modifier.StartsWith("imax6")) track = AudioTrack.IMAX6;
+            else if (modifier.StartsWith("imax12")) track = AudioTrack.IMAX12;
             // These formats might upgrade a present standard layout, like "71-Atmos"
             if (modifier.Contains("atmos")) track = AudioTrack.Atmos;
             if (modifier.Contains("auro")) track = AudioTrack.Auro;
             if (modifier.Contains("auromax")) track = AudioTrack.AuroMax;
             if (modifier.Contains("dtsx")) track = AudioTrack.DTS___X;
-            if (modifier.Contains("imax5")) track = AudioTrack.IMAX5;
-            if (modifier.Contains("imax6")) track = AudioTrack.IMAX5;
-            if (modifier.Contains("imax12")) track = AudioTrack.IMAX5;
             return track != AudioTrack.Unknown;
         }
 
