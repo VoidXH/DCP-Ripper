@@ -154,15 +154,14 @@ namespace DCP_Ripper {
         /// <summary>
         /// Called after ripping the selected folder.
         /// </summary>
-        /// <param name="finished">Number of successful conversions</param>
-        void AfterProcess(int finished) {
+        void AfterProcess() {
             int processed = processor.Compositions.Count;
             if (Settings.Default.deleteAftter)
                 Dispatcher.Invoke(() => Refresh_Click(null, null));
-            if (finished == processed || finished == ListProcessor.SingleDone)
+            int failureCount = failedContent != null ? failedContent.Count(c => c == '\n') : 0;
+            if (failureCount == 0)
                 return;
             failedContent = processor.GetFailedContents();
-            int failureCount = failedContent.Count(c => c == '\n');
             ProcessStatusUpdate($"Finished with {failureCount} failure{(failureCount > 1 ? "s" : string.Empty)}!");
             Dispatcher.Invoke(() => failureList.Visibility = Visibility.Visible);
         }

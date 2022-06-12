@@ -1,4 +1,5 @@
 ﻿using DCP_Ripper.Properties;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -9,11 +10,6 @@ namespace DCP_Ripper.Processing {
     /// Processes a list of compositions.
     /// </summary>
     public class ListProcessor {
-        /// <summary>
-        /// A single selected composition was successfully converted.
-        /// </summary>
-        public const int SingleDone = -1;
-
         /// <summary>
         /// Marks the content parent folder for output path.
         /// </summary>
@@ -46,15 +42,9 @@ namespace DCP_Ripper.Processing {
         public event StatusUpdate OnStatusUpdate;
 
         /// <summary>
-        /// Process completion delegate.
-        /// </summary>
-        /// <param name="finished">Number of successful conversions</param>
-        public delegate void AfterProcess(int finished);
-
-        /// <summary>
         /// Called when list processing is finished.
         /// </summary>
-        public event AfterProcess OnCompletion;
+        public event Action OnCompletion;
 
         /// <summary>
         /// List of failed content.
@@ -110,12 +100,11 @@ namespace DCP_Ripper.Processing {
         public void Process() {
             if (Compositions == null || FFmpegPath == null)
                 return;
-            int finished = 0;
             failures = new StringBuilder();
             foreach (string composition in Compositions)
                 ProcessSingle(composition);
             OnStatusUpdate?.Invoke("Finished!");
-            OnCompletion?.Invoke(finished);
+            OnCompletion?.Invoke();
         }
 
         /// <summary>
@@ -126,9 +115,9 @@ namespace DCP_Ripper.Processing {
             if (Compositions == null || FFmpegPath == null)
                 return;
             failures = new StringBuilder();
-            int finished = ProcessSingle(path) ? SingleDone : 0;
+            ProcessSingle(path);
             OnStatusUpdate?.Invoke("Finished!");
-            OnCompletion?.Invoke(finished);
+            OnCompletion?.Invoke();
         }
 
         /// <summary>
