@@ -1,5 +1,6 @@
 ﻿using Cavern.Format;
 using Cavern.Utilities;
+using DCP_Ripper.Consts;
 using DCP_Ripper.Properties;
 using System;
 using System.Collections.Generic;
@@ -11,11 +12,6 @@ namespace DCP_Ripper.Processing {
     /// Rips a composition.
     /// </summary>
     public class CompositionProcessor {
-        /// <summary>
-        /// FFmpeg arguments for single eye processing.
-        /// </summary>
-        const string singleEye = "{0} -ss {1} -i \"{2}\" -t {3} {4} -c:v {5} -crf {6} -v error -stats \"{7}\"";
-
         /// <summary>
         /// Composition title.
         /// </summary>
@@ -37,21 +33,6 @@ namespace DCP_Ripper.Processing {
         public IReadOnlyList<Reel> Contents { get; private set; }
 
         /// <summary>
-        /// Video codec name for FFmpeg.
-        /// </summary>
-        static string VideoFormat => Settings.Default.format.StartsWith("x265") ? "libx265" : "libx264";
-
-        /// <summary>
-        /// Use chroma subsampling.
-        /// </summary>
-        static bool ChromaSubsampling => Settings.Default.format.Contains("420");
-
-        /// <summary>
-        /// Constant Rate Factor for AVC/HEVC codecs.
-        /// </summary>
-        static int CRF => Settings.Default.crf;
-
-        /// <summary>
         /// Constant Rate Factor for AVC/HEVC codecs when ripping 3D content.
         /// </summary>
         static int CRF3D => Settings.Default.crf3d;
@@ -60,11 +41,6 @@ namespace DCP_Ripper.Processing {
         /// 3D ripping mode.
         /// </summary>
         static Mode3D StereoMode => (Mode3D)Enum.Parse(typeof(Mode3D), Settings.Default.mode3d);
-
-        /// <summary>
-        /// Audio codec name for FFmpeg.
-        /// </summary>
-        static string AudioFormat => Settings.Default.audio;
 
         /// <summary>
         /// Path of FFmpeg.
@@ -86,8 +62,8 @@ namespace DCP_Ripper.Processing {
         /// </summary>
         string GetStreamExportPath(string source) {
             string directory = Path.GetDirectoryName(source),
-                file = "stream-" + Path.GetFileName(source).Replace(".mxf", ".mkv").Replace(".MXF", ".mkv");
-            if (ForcePath != null)
+                file = "stream-" + Path.GetFileName(source).ChangeExtension("mxf", "mkv");
+            if (ForcePath != null) // TODO: stream force path option
                 directory = ForcePath;
             return Path.Combine(directory, file);
         }
@@ -110,58 +86,35 @@ namespace DCP_Ripper.Processing {
         }
 
         /// <summary>
-        /// Generate FFmpeg filter sets for different 3D rips and eyes.
-        /// </summary>
-        /// <param name="left">Filter the left eye's frames</param>
-        /// <param name="halfSize">Half frame size depending on mode</param>
-        /// <param name="sbs">Side-by-side division if true, over-under otherwise</param>
-        static string EyeFilters(bool left, bool halfSize, bool sbs = true) {
-            string output = left ? "-vf select=\"mod(n-1\\,2)\"" : "-vf select=\"not(mod(n-1\\,2))\"";
-            if (halfSize)
-                output += sbs ? ",scale=iw/2:ih,setsar=1:1" : ",scale=iw:ih/2,setsar=1:1";
-            return output;
-        }
-
-        /// <summary>
         /// Process a video file. The created file will have the same name, but in Matroska format, which is the returned value.
         /// </summary>
-        public string ProcessVideo(Reel content, string extraModifiers = "") {
+        public string ProcessVideo(Reel content, string extraFilters = "") {
             if (content.videoFile == null || !File.Exists(content.videoFile))
                 return null;
             string fileName = GetStreamExportPath(content.videoFile);
             if (!Settings.Default.overwrite && File.Exists(fileName))
                 return fileName;
-            string videoStart = (content.videoStartFrame / content.framerate).ToString("0.000").Replace(',', '.');
-            string length = (content.duration / content.framerate).ToString("0.000").Replace(',', '.');
-            string subsampling = ChromaSubsampling ? "-pix_fmt yuv420p" : string.Empty;
             if (!content.is3D)
-                return LaunchFFmpeg($"-ss {videoStart} -i \"{content.videoFile}\" -t {length} -c:v {VideoFormat} " +
-                    $"{subsampling} {extraModifiers} -crf {CRF} -v error -stats \"{fileName}\"") ? fileName : null;
+                return LaunchFFmpeg(FFmpegCalls.VideoToSelectedCodec(content, fileName, extraFilters)) ? fileName : null;
 
-            string doubleRate = "-r " + (content.framerate * 2).ToString("0.000").Replace(',', '.');
             int lowerCRF = Math.Max(CRF3D - 5, 0);
             if (StereoMode == Mode3D.Interop)
-                return LaunchFFmpeg($"{doubleRate} -ss {videoStart} -i \"{content.videoFile}\" -t {length} -c:v {VideoFormat} " +
-                    $"-crf {CRF} -v error -stats \"{fileName}\"") ? fileName : null;
+                return LaunchFFmpeg(FFmpegCalls.Interop3D(content, fileName)) ? fileName : null;
             else if (StereoMode == Mode3D.LeftEye || StereoMode == Mode3D.RightEye)
-                return LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length,
-                    EyeFilters(StereoMode == Mode3D.LeftEye, false), VideoFormat, CRF, fileName)) ? fileName : null;
+                return LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, fileName, Settings.Default.crf,
+                    StereoMode == Mode3D.LeftEye, false, false, extraFilters)) ? fileName : null;
 
             bool halfSize = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.HalfOverUnder;
             bool sbs = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.SideBySide;
-            string leftFile = content.videoFile.Replace(".mxf", "_L.mkv").Replace(".MXF", "_L.mkv");
+            string leftFile = GetStreamExportPath(content.videoFile.ChangeExtension(".mxf", "_L.mkv"));
             if (Settings.Default.overwrite || !File.Exists(leftFile))
-                if (!LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length,
-                    EyeFilters(true, halfSize, sbs), VideoFormat, lowerCRF, leftFile)))
+                if (!LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, leftFile, lowerCRF, true, halfSize, sbs, extraFilters)))
                     return null;
-            string rightFile = content.videoFile.Replace(".mxf", "_R.mkv").Replace(".MXF", "_R.mkv");
+            string rightFile = GetStreamExportPath(content.videoFile.ChangeExtension(".mxf", "_R.mkv"));
             if (Settings.Default.overwrite || !File.Exists(rightFile))
-                if (!LaunchFFmpeg(string.Format(singleEye, doubleRate, videoStart, content.videoFile, length,
-                    EyeFilters(false, halfSize, sbs), VideoFormat, lowerCRF, rightFile)))
+                if (!LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, rightFile, lowerCRF, false, halfSize, sbs, extraFilters)))
                     return null;
-            if (LaunchFFmpeg($"-i \"{leftFile}\" -i \"{rightFile}\" -filter_complex" +
-                $" [0:v][1:v]{(sbs ? 'h' : 'v')}stack=inputs=2[v] -map [v] -c:v {VideoFormat} {subsampling} {extraModifiers}" +
-                $" -crf {CRF3D} -v error -stats \"{fileName}\"")) {
+            if (LaunchFFmpeg(FFmpegCalls.Merge3D(leftFile, rightFile, sbs, fileName, extraFilters))) {
                 if (!File.Exists(fileName))
                     return null;
                 File.Delete(leftFile);
@@ -175,7 +128,7 @@ namespace DCP_Ripper.Processing {
         /// Process a video file. If the resolution is 4K, it will be downscaled to 2K.
         /// The created file will have the same name, but in Matroska format, which is the returned value.
         /// </summary>
-        public string ProcessVideo2K(Reel content) => ProcessVideo(content, Is4K ? "-vf scale=iw/2:ih/2" : string.Empty);
+        public string ProcessVideo2K(Reel content) => ProcessVideo(content, Is4K ? "scale=iw/2:ih/2" : string.Empty);
 
         /// <summary>
         /// Downmix a WAV file to 5.1 while keeping the gains.
@@ -227,27 +180,17 @@ namespace DCP_Ripper.Processing {
                 return fileName;
             if (Settings.Default.downmix) {
                 string tempName = fileName[..(fileName.LastIndexOf('.') + 1)] + "wav";
-                if (Settings.Default.overwrite || !File.Exists(tempName)) {
-                    string args = string.Format("-i \"{0}\" -ss {1} -t {2} -c:a pcm_s24le -v error -stats \"{3}\"",
-                        content.audioFile,
-                        (content.audioStartFrame / content.framerate).ToString("0.000").Replace(',', '.'),
-                        (content.duration / content.framerate).ToString("0.000").Replace(',', '.'),
-                        tempName);
-                    if (!LaunchFFmpeg(args))
-                        return null;
-                }
+                if ((Settings.Default.overwrite || !File.Exists(tempName)) &&
+                    !LaunchFFmpeg(FFmpegCalls.AudioToPCM(content, tempName)))
+                    return null;
                 DownmixTo51(tempName);
-                string result =
-                    LaunchFFmpeg($"-i \"{tempName}\" -c:a {AudioFormat} -v error -stats \"{fileName}\"") ? fileName : null;
-                File.Delete(tempName);
-                return result;
+                if (LaunchFFmpeg(FFmpegCalls.ApplyCodec(tempName, fileName))) {
+                    File.Delete(tempName);
+                    return fileName;
+                }
+                return null;
             }
-            return LaunchFFmpeg(string.Format("-i \"{0}\" -ss {1} -t {2} -c:a {3} -v error -stats \"{4}\"",
-                content.audioFile,
-                (content.audioStartFrame / content.framerate).ToString("0.000").Replace(',', '.'),
-                (content.duration / content.framerate).ToString("0.000").Replace(',', '.'),
-                AudioFormat,
-                fileName)) ? fileName : null;
+            return LaunchFFmpeg(FFmpegCalls.AudioToSelectedCodec(content, fileName)) ? fileName : null;
         }
 
         /// <summary>
