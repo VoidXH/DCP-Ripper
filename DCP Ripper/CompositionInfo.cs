@@ -84,7 +84,11 @@ namespace DCP_Ripper {
                 wasLanguage = false;
             for (int i = 0, c = modifiers.Length; i < c; ++i) {
                 if (modifiers[i].Length == 8 && int.TryParse(modifiers[i], out int date)) {
-                    Creation = new DateTime(date / 10000, date % 10000 / 100, date % 100);
+                    try {
+                        Creation = new DateTime(date / 10000, date % 10000 / 100, date % 100);
+                    } catch {
+                        Creation = new DateTime(date / 10000, date % 10000 / 100, date % 100 - 1); // Fixes things like sept. 31
+                    }
                     wasDate = true;
                 } else if (Enum.TryParse('_' + modifiers[i], out Resolution detectedRes))
                     Resolution = detectedRes;
