@@ -32,21 +32,9 @@ namespace DCP_Ripper {
         }
 
         /// <summary>
-        /// Get the content title of a composition playlist.
-        /// </summary>
-        public static string GetCPLTitle(string path) {
-            using XmlReader reader = XmlReader.Create(path);
-            while (!reader.Name.Equals("ContentTitleText"))
-                if (!reader.Read())
-                    return path[(path.LastIndexOf("\\") + 1)..];
-            reader.Read();
-            return reader.Value;
-        }
-
-        /// <summary>
         /// Checks a folder and its subfolders for composition playlist files.
         /// </summary>
-        static void ProcessFolder(string path, List<string> collection) {
+        static void ProcessFolder(string path, List<CompositionInfo> collection) {
             string[] files, dirs;
             try {
                 files = Directory.GetFiles(path);
@@ -56,7 +44,7 @@ namespace DCP_Ripper {
             }
             foreach (string file in files)
                 if (IsCPL(file))
-                    collection.Add(file);
+                    collection.Add(new CompositionInfo(file));
             foreach (string dir in dirs)
                 ProcessFolder(dir, collection);
         }
@@ -64,8 +52,8 @@ namespace DCP_Ripper {
         /// <summary>
         /// Starts checking a folder and its subfolders for composition playlist files.
         /// </summary>
-        public static List<string> ProcessFolder(string path) {
-            List<string> result = new();
+        public static List<CompositionInfo> ProcessFolder(string path) {
+            List<CompositionInfo> result = new();
             ProcessFolder(path, result);
             return result;
         }

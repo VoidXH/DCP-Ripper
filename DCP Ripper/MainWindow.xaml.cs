@@ -56,13 +56,7 @@ namespace DCP_Ripper {
                 item.IsSelected = item.Name.Equals(value);
         }
 
-        void OpenFolder(string path) {
-            processor.Compositions = Finder.ProcessFolder(path);
-            List<CompositionInfo> items = new();
-            foreach (string composition in processor.Compositions)
-                items.Add(new CompositionInfo(composition));
-            foundContent.ItemsSource = items;
-        }
+        void OpenFolder(string path) => foundContent.ItemsSource = processor.Compositions = Finder.ProcessFolder(path);
 
         void Window_Loaded(object sender, RoutedEventArgs e) {
             ripVideo.IsChecked = Settings.Default.ripVideo;
@@ -143,7 +137,7 @@ namespace DCP_Ripper {
                 MessageBox.Show("No content was selected.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            await processor.ProcessSelectedAsync(selected.Path);
+            await processor.ProcessSelectedAsync(selected);
         }
 
         /// <summary>

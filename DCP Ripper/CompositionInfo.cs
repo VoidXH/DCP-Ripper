@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Xml;
 
 namespace DCP_Ripper {
     /// <summary>
@@ -7,6 +8,10 @@ namespace DCP_Ripper {
     /// </summary>
     [SuppressMessage("Design", "CA1067", Justification = "No.")]
     public class CompositionInfo : IEquatable<CompositionInfo> {
+        /// <summary>
+        /// The standardized title that is shown on the playout server.
+        /// </summary>
+        public string StandardTitle { get; private set; }
         /// <summary>
         /// Location of the composition playlist file.
         /// </summary>
@@ -78,8 +83,8 @@ namespace DCP_Ripper {
         /// Parse a DCNC file name.
         /// </summary>
         public CompositionInfo(string path) {
-            Path = path;
-            string[] modifiers = Finder.GetCPLTitle(path).Split('_');
+            StandardTitle = GetContentTitle(Path = path);
+            string[] modifiers = StandardTitle.Split('_');
             bool wasDate = false,
                 wasLanguage = false;
             for (int i = 0, c = modifiers.Length; i < c; ++i) {
@@ -126,6 +131,18 @@ namespace DCP_Ripper {
                 Language = "XX";
             if (string.IsNullOrEmpty(Territory))
                 Territory = "XX";
+        }
+
+        /// <summary>
+        /// Get the content title from the playlist file.
+        /// </summary>
+        static string GetContentTitle(string path) {
+            using XmlReader reader = XmlReader.Create(path);
+            while (!reader.Name.Equals("ContentTitleText"))
+                if (!reader.Read())
+                    return path[(path.LastIndexOf("\\") + 1)..];
+            reader.Read();
+            return reader.Value;
         }
 
         /// <summary>
@@ -209,5 +226,10 @@ namespace DCP_Ripper {
         public bool Equals(CompositionInfo other) =>
             Title.Equals(other.Title) && Type.Equals(other.Title) && Modifiers.Equals(other.Modifiers) &&
             AspectRatio.Equals(other.AspectRatio) && Audio.Equals(other.Audio) && Resolution.Equals(other.Resolution);
+
+        /// <summary>
+        /// Returns a more readable short title.
+        /// </summary>
+        public override string ToString() => $"{Title} {Type.ToString()[4..]} {Modifiers}";
     }
 }

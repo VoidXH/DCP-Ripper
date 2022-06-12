@@ -18,7 +18,7 @@ namespace DCP_Ripper.Processing {
         /// <summary>
         /// The list of compositions to process.
         /// </summary>
-        public List<string> Compositions { get; set; }
+        public List<CompositionInfo> Compositions { get; set; }
 
         /// <summary>
         /// Launch location of ffmpeg.exe.
@@ -59,36 +59,36 @@ namespace DCP_Ripper.Processing {
         /// <summary>
         /// Process a single composition.
         /// </summary>
-        bool ProcessSingle(string cplPath) {
-            if (!File.Exists(cplPath)) {
-                failures.AppendLine(Path.GetFileName(cplPath) + " does not exist.");
+        bool ProcessSingle(CompositionInfo composition) {
+            if (!File.Exists(composition.Path)) {
+                failures.AppendLine(Path.GetFileName(composition.Path) + " does not exist.");
                 return false;
             }
-            string title = Finder.GetCPLTitle(cplPath);
-            OnStatusUpdate?.Invoke($"Processing {title}...");
+            OnStatusUpdate?.Invoke($"Processing {composition}...");
             string finalOutput = OutputPath,
-                sourceFolder = Path.GetDirectoryName(cplPath);
+                sourceFolder = Path.GetDirectoryName(composition.Path);
             if (!string.IsNullOrEmpty(OutputPath) && OutputPath.Equals(parentMarker)) {
                 finalOutput = Path.GetDirectoryName(sourceFolder);
                 if (finalOutput == null) {
-                    failures.AppendLine($"Can't output {title} above a root folder.");
+                    failures.AppendLine($"Can't output {composition} above a root folder.");
                     return false;
                 }
             }
 
-            CompositionProcessor processor = new(FFmpegPath, cplPath) {
+            CompositionProcessor processor = new(FFmpegPath, composition.Path) {
                 ForcePath = finalOutput
             };
             if (processor.ProcessComposition()) {
                 if (Settings.Default.zipAfter) {
-                    OnStatusUpdate?.Invoke($"Zipping {title}...");
-                    Finder.ZipAssets(sourceFolder, $"{finalOutput}\\{title}.zip", textOut => OnStatusUpdate(textOut));
+                    OnStatusUpdate?.Invoke($"Zipping {composition}...");
+                    Finder.ZipAssets(sourceFolder, $"{finalOutput}\\{composition.StandardTitle}.zip",
+                        textOut => OnStatusUpdate(textOut));
                 }
                 if (Settings.Default.deleteAftter)
                     Finder.DeleteAssets(sourceFolder);
                 return true;
             } else {
-                failures.AppendLine($"Conversion of {title} failed - most likely a codec error.");
+                failures.AppendLine($"Conversion of {composition} failed - most likely a codec error.");
                 return false;
             }
         }
@@ -101,7 +101,7 @@ namespace DCP_Ripper.Processing {
             if (Compositions == null || FFmpegPath == null)
                 return;
             failures = new StringBuilder();
-            foreach (string composition in Compositions)
+            foreach (CompositionInfo composition in Compositions)
                 ProcessSingle(composition);
             OnStatusUpdate?.Invoke("Finished!");
             OnCompletion?.Invoke();
@@ -111,11 +111,11 @@ namespace DCP_Ripper.Processing {
         /// Start processing the selected composition.
         /// </summary>
         /// <returns>Number of successful conversions</returns>
-        public void ProcessSelected(string path) {
+        public void ProcessSelected(CompositionInfo composition) {
             if (Compositions == null || FFmpegPath == null)
                 return;
             failures = new StringBuilder();
-            ProcessSingle(path);
+            ProcessSingle(composition);
             OnStatusUpdate?.Invoke("Finished!");
             OnCompletion?.Invoke();
         }
@@ -136,10 +136,10 @@ namespace DCP_Ripper.Processing {
         /// Start processing the selected composition as a <see cref="Task"/>.
         /// </summary>
         /// <returns>A task with a return value of the number of successful conversions</returns>
-        public Task ProcessSelectedAsync(string path) {
+        public Task ProcessSelectedAsync(CompositionInfo composition) {
             if (task != null && !task.IsCompleted)
                 return task;
-            task = new Task(() => ProcessSelected(path));
+            task = new Task(() => ProcessSelected(composition));
             task.Start();
             return task;
         }
