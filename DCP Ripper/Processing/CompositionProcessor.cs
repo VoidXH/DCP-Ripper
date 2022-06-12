@@ -60,10 +60,10 @@ namespace DCP_Ripper.Processing {
         /// <summary>
         /// Gets where the stream or final export file should be placed.
         /// </summary>
-        string GetStreamExportPath(string source) {
+        string GetStreamExportPath(string source, string extension, bool video) {
             string directory = Path.GetDirectoryName(source),
-                file = "stream-" + Path.GetFileName(source).ChangeExtension("mxf", "mkv");
-            if (ForcePath != null) // TODO: stream force path option
+                file = $"{(video ? "_v-" : "_a-")}{Path.GetFileName(directory)}.{extension}";
+            if (ForcePath != null)
                 directory = ForcePath;
             return Path.Combine(directory, file);
         }
@@ -91,7 +91,7 @@ namespace DCP_Ripper.Processing {
         public string ProcessVideo(Reel content, string extraFilters = "") {
             if (content.videoFile == null || !File.Exists(content.videoFile))
                 return null;
-            string fileName = GetStreamExportPath(content.videoFile);
+            string fileName = GetStreamExportPath(content.videoFile, "mkv", true);
             if (!Settings.Default.overwrite && File.Exists(fileName))
                 return fileName;
             if (!content.is3D)
@@ -106,11 +106,11 @@ namespace DCP_Ripper.Processing {
 
             bool halfSize = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.HalfOverUnder;
             bool sbs = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.SideBySide;
-            string leftFile = GetStreamExportPath(content.videoFile.ChangeExtension(".mxf", "_L.mkv"));
+            string leftFile = GetStreamExportPath(content.videoFile, "L.mkv", true);
             if (Settings.Default.overwrite || !File.Exists(leftFile))
                 if (!LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, leftFile, lowerCRF, true, halfSize, sbs, extraFilters)))
                     return null;
-            string rightFile = GetStreamExportPath(content.videoFile.ChangeExtension(".mxf", "_R.mkv"));
+            string rightFile = GetStreamExportPath(content.videoFile, "R.mkv", true);
             if (Settings.Default.overwrite || !File.Exists(rightFile))
                 if (!LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, rightFile, lowerCRF, false, halfSize, sbs, extraFilters)))
                     return null;
@@ -175,7 +175,7 @@ namespace DCP_Ripper.Processing {
         public string ProcessAudio(Reel content) {
             if (content.audioFile == null || !File.Exists(content.audioFile))
                 return null;
-            string fileName = GetStreamExportPath(content.audioFile);
+            string fileName = GetStreamExportPath(content.audioFile, "mkv", false);
             if (!Settings.Default.overwrite && File.Exists(fileName))
                 return fileName;
             if (Settings.Default.downmix) {
