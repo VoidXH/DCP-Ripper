@@ -75,7 +75,7 @@ namespace DCP_Ripper.Processing {
                 }
             }
 
-            CompositionProcessor processor = new(FFmpegPath, composition.Path) {
+            CompositionProcessor processor = new(FFmpegPath, composition) {
                 ForcePath = finalOutput
             };
             if (processor.ProcessComposition()) {

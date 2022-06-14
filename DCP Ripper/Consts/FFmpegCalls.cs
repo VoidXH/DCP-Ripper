@@ -35,13 +35,14 @@ namespace DCP_Ripper.Consts {
         /// <summary>
         /// Converts the audio track to the selected codec.
         /// </summary>
-        public static string AudioToSelectedCodec(Reel content, string outputFile) {
-            const string args = "-i \"{0}\" -ss {1} -t {2} -c:a {3} -v error -stats \"{4}\"";
+        public static string AudioToSelectedCodec(Reel content, string outputFile, string extra = "") {
+            const string args = "-i \"{0}\" -ss {1} -t {2} -c:a {3} {4} -v error -stats \"{5}\"";
             return string.Format(args,
                 content.audioFile,
                 (content.audioStartFrame / content.framerate).ToFFmpegNumber(),
                 (content.duration / content.framerate).ToFFmpegNumber(),
                 Settings.Default.audio,
+                extra,
                 outputFile);
         }
 

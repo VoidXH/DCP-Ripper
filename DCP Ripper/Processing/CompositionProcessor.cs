@@ -1,5 +1,4 @@
 ﻿using Cavern.Format;
-using Cavern.Utilities;
 using DCP_Ripper.Consts;
 using DCP_Ripper.Properties;
 using System;
@@ -12,6 +11,11 @@ namespace DCP_Ripper.Processing {
     /// Rips a composition.
     /// </summary>
     public class CompositionProcessor {
+        /// <summary>
+        /// FFmpeg argument to allow more than 8 channels of audio.
+        /// </summary>
+        const string rawMapping = "-mapping_family 255";
+
         /// <summary>
         /// Composition title.
         /// </summary>
@@ -43,6 +47,11 @@ namespace DCP_Ripper.Processing {
         static Mode3D StereoMode => (Mode3D)Enum.Parse(typeof(Mode3D), Settings.Default.mode3d);
 
         /// <summary>
+        /// Composition metadata.
+        /// </summary>
+        readonly CompositionInfo info;
+
+        /// <summary>
         /// Path of FFmpeg.
         /// </summary>
         readonly string ffmpegPath;
@@ -50,9 +59,10 @@ namespace DCP_Ripper.Processing {
         /// <summary>
         /// Load a composition for processing.
         /// </summary>
-        public CompositionProcessor(string ffmpegPath, string cplPath) {
+        public CompositionProcessor(string ffmpegPath, CompositionInfo info) {
+            this.info = info;
             this.ffmpegPath = ffmpegPath;
-            PlaylistProcessor importer = new(cplPath);
+            PlaylistProcessor importer = new(info.Path);
             Contents = importer.Contents;
             Is4K = (Title = importer.Title).Contains("_4K");
         }
@@ -131,66 +141,58 @@ namespace DCP_Ripper.Processing {
         public string ProcessVideo2K(Reel content) => ProcessVideo(content, Is4K ? "scale=iw/2:ih/2" : string.Empty);
 
         /// <summary>
-        /// Downmix a WAV file to 5.1 while keeping the gains.
+        /// Apply the selected downmixing method.
         /// </summary>
-        static void DownmixTo51(string path) {
+        static bool ApplyDownmix(string path, bool auro) {
             RIFFWaveReader reader = new(path);
             reader.ReadHeader();
 
             if (reader.ChannelCount <= 6) {
                 reader.Dispose();
-                return;
+                return true;
             }
 
-            string newPath = Path.Combine(Path.GetDirectoryName(path), "_temp2.wav");
-            RIFFWaveWriter writer = new(newPath, 6, reader.Length, reader.SampleRate, reader.Bits);
-            writer.WriteHeader();
-
-            long progress = 0;
-            const long blockSize = 1 << 18; // 1 MB/channel @ 32 bits
-            float[][] inData = new float[reader.ChannelCount][],
-                outData = new float[6][];
-            for (int i = 0; i < reader.ChannelCount; ++i)
-                inData[i] = new float[blockSize];
-            while (progress < reader.Length) {
-                reader.ReadBlock(inData, 0, blockSize);
-                // 6-7 are hearing/visually impaired tracks, 12+ are sync signals
-                for (int i = 8; i < Math.Min(inData.Length, 12); ++i)
-                    WaveformUtils.Mix(inData[i], inData[4 + i % 2]);
-                Array.Copy(inData, outData, 6);
-                writer.WriteBlock(outData, 0, Math.Min(blockSize, reader.Length - progress));
-                progress += blockSize;
-            }
+            string newPath = Path.Combine(Path.GetDirectoryName(path), "_temp.wav");
+            if (Settings.Default.downmix == (int)Downmixer.Surround)
+                Downmix.Surround(reader, auro, newPath);
+            else if(Settings.Default.downmix == (int)Downmixer.GainKeeping51)
+                Downmix.GainKeeping51(reader, newPath);
 
             reader.Dispose();
-            writer.Dispose();
-            File.Delete(path);
-            File.Move(newPath, path);
+            if (File.Exists(newPath)) {
+                File.Delete(path);
+                File.Move(newPath, path);
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
         /// Process the audio file of a content. The created file will have the same name,
         /// but in Matroska format, which is the returned value.
         /// </summary>
-        public string ProcessAudio(Reel content) {
+        public string ProcessAudio(Reel content, bool auro) {
             if (content.audioFile == null || !File.Exists(content.audioFile))
                 return null;
             string fileName = GetStreamExportPath(content.audioFile, "mkv", false);
             if (!Settings.Default.overwrite && File.Exists(fileName))
                 return fileName;
-            if (Settings.Default.downmix) {
+            if (Settings.Default.downmix == (int)Downmixer.Surround ||
+                Settings.Default.downmix == (int)Downmixer.GainKeeping51) {
                 string tempName = fileName[..(fileName.LastIndexOf('.') + 1)] + "wav";
                 if ((Settings.Default.overwrite || !File.Exists(tempName)) &&
                     !LaunchFFmpeg(FFmpegCalls.AudioToPCM(content, tempName)))
                     return null;
-                DownmixTo51(tempName);
+                if (!ApplyDownmix(tempName, auro))
+                    return null;
                 if (LaunchFFmpeg(FFmpegCalls.ApplyCodec(tempName, fileName))) {
                     File.Delete(tempName);
                     return fileName;
                 }
                 return null;
             }
-            return LaunchFFmpeg(FFmpegCalls.AudioToSelectedCodec(content, fileName)) ? fileName : null;
+            string mapping = Settings.Default.downmix != (int)Downmixer.RawMapping ? string.Empty : rawMapping;
+            return LaunchFFmpeg(FFmpegCalls.AudioToSelectedCodec(content, fileName, mapping)) ? fileName : null;
         }
 
         /// <summary>
@@ -228,7 +230,7 @@ namespace DCP_Ripper.Processing {
                     video = Settings.Default.downscale ? ProcessVideo2K(Contents[i]) : ProcessVideo(Contents[i]);
                 string audio = null;
                 if (Settings.Default.ripAudio)
-                    audio = ProcessAudio(Contents[i]);
+                    audio = ProcessAudio(Contents[i], info.Audio == AudioTrack.Auro);
 
                 if (Settings.Default.ripVideo && Settings.Default.ripAudio) {
                     if (video != null && audio != null && Merge(video, audio, fileName))

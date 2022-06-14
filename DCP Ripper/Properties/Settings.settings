@@ -39,13 +39,13 @@
       <Value Profile="(Default)">HalfSideBySide</Value>
     </Setting>
     <Setting Name="height" Type="System.Double" Scope="User">
-      <Value Profile="(Default)">350</Value>
+      <Value Profile="(Default)">400</Value>
     </Setting>
-    <Setting Name="downmix" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
+    <Setting Name="downmix" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">2</Value>
     </Setting>
     <Setting Name="width" Type="System.Double" Scope="User">
-      <Value Profile="(Default)">800</Value>
+      <Value Profile="(Default)">820</Value>
     </Setting>
     <Setting Name="overwrite" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>

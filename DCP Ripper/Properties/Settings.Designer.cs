@@ -169,7 +169,7 @@ namespace DCP_Ripper.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("350")]
+        [global::System.Configuration.DefaultSettingValueAttribute("400")]
         public double height {
             get {
                 return ((double)(this["height"]));
@@ -181,10 +181,10 @@ namespace DCP_Ripper.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool downmix {
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        public int downmix {
             get {
-                return ((bool)(this["downmix"]));
+                return ((int)(this["downmix"]));
             }
             set {
                 this["downmix"] = value;
@@ -193,7 +193,7 @@ namespace DCP_Ripper.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("800")]
+        [global::System.Configuration.DefaultSettingValueAttribute("820")]
         public double width {
             get {
                 return ((double)(this["width"]));

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:DCP_Ripper"
         xmlns:conv="clr-namespace:DCP_Ripper.Converters"
         mc:Ignorable="d"
-        Title="DCP Ripper" MinHeight="400" Height="400" MinWidth="800" Width="760" Loaded="Window_Loaded" Closed="Window_Closed">
+        Title="DCP Ripper" MinHeight="400" Height="400" MinWidth="760" Width="820" Loaded="Window_Loaded" Closed="Window_Closed">
     <Window.Resources>
         <conv:AudioTrackToStringConverter x:Key="AudioTrackToStringConverter"/>
         <conv:ContentTypeToBrushConverter x:Key="ContentTypeToBackground"/>
@@ -93,12 +93,12 @@
                 <CheckBox x:Name="downscale" Content="Downscale 4K content to 2K" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,158,0,0"/>
             </Grid>
         </GroupBox>
-        <GroupBox x:Name="audioBox" Grid.Column="1" Header="Audio settings" Height="105" Margin="10,221,10,0" VerticalAlignment="Top">
+        <GroupBox x:Name="audioBox" Grid.Column="1" Header="Audio settings" Height="114" Margin="10,221,10,0" VerticalAlignment="Top">
             <Grid>
                 <CheckBox x:Name="ripAudio" Content="Rip audio" IsChecked="True"
                           HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                <TextBlock x:Name="audioLabel" Text="Format:" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                <ComboBox x:Name="audio" HorizontalAlignment="Left" Width="153" Margin="55,0,0,0" VerticalAlignment="Center">
+                <TextBlock Text="Format:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,33,0,0"/>
+                <ComboBox x:Name="audio" HorizontalAlignment="Left" Width="153" Margin="55,30,0,0" VerticalAlignment="Top">
                     <ComboBoxItem x:Name="aac" Content="AAC (low quality, small, 5.1 only)"/>
                     <ComboBoxItem x:Name="eac3" Content="Dolby Digital+ (high quality, medium, 5.1 only)"/>
                     <ComboBoxItem x:Name="libvorbis" Content="Vorbis (high quality, small)"/>
@@ -107,10 +107,13 @@
                     <ComboBoxItem x:Name="flac" Content="FLAC (lossless, large)"/>
                     <ComboBoxItem x:Name="pcm_s24le" Content="PCM 24 bit (raw, largest)"/>
                 </ComboBox>
-                <CheckBox x:Name="downmix" Content="Gain-keeping 5.1 downmix"
-                          HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,57,0,0"
-                          ToolTip="Apply a 5.1 downmix before encoding the audio to keep the gain of 5.1 rear tracks.
- Otherwise it will result in -3 dB gain for the actual surround channels."/>
+                <TextBlock Text="Downmix:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,60,0,0"/>
+                <ComboBox x:Name="downmix" HorizontalAlignment="Left" Width="141" Margin="67,57,0,0" VerticalAlignment="Top">
+                    <ComboBoxItem x:Name="downmix_Bypass" Content="Bypass"/>
+                    <ComboBoxItem x:Name="downmix_GainKeeping51" Content="Gain-keeping 5.1"/>
+                    <ComboBoxItem x:Name="downmix_Surround" Content="5.1 or 7.1 if available" IsSelected="True"/>
+                    <ComboBoxItem x:Name="downmix_RawMapping" Content="Raw mapping"/>
+                </ComboBox>
             </Grid>
         </GroupBox>
         <GroupBox x:Name="processBox" Grid.Column="2" Header="Process" Margin="10,10,10,44">

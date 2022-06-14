@@ -234,4 +234,27 @@
         /// </summary>
         RightEye
     }
+
+    /// <summary>
+    /// Downmixing methods.
+    /// </summary>
+    public enum Downmixer {
+        /// <summary>
+        /// Passes the audio track straight to FFmpeg. This might not work.
+        /// </summary>
+        Bypass,
+        /// <summary>
+        /// Forces a 5.1 output, without any gain change.
+        /// This might clip 7.1 content, but solves if 5.1 channels are mixed to rears.
+        /// </summary>
+        GainKeeping51,
+        /// <summary>
+        /// 5.1 or 7.1 if available, stripping HI/VI/sync.
+        /// </summary>
+        Surround,
+        /// <summary>
+        /// Applies the -mapping_family 255 argument.
+        /// </summary>
+        RawMapping
+    }
 }

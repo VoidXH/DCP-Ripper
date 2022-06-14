@@ -68,7 +68,7 @@ namespace DCP_Ripper {
             downscale.IsChecked = Settings.Default.downscale;
             ripAudio.IsChecked = Settings.Default.ripAudio;
             ComboBoxSelect(audio, Settings.Default.audio);
-            downmix.IsChecked = Settings.Default.downmix;
+            downmix.SelectedIndex = Settings.Default.downmix;
             zipAfter.IsChecked = Settings.Default.zipAfter;
             deleteAfter.IsChecked = Settings.Default.deleteAftter;
             overwrite.IsChecked = Settings.Default.overwrite;
@@ -213,7 +213,7 @@ namespace DCP_Ripper {
             Settings.Default.downscale = downscale.IsChecked.Value;
             Settings.Default.ripAudio = ripAudio.IsChecked.Value;
             Settings.Default.audio = ((ComboBoxItem)audio.SelectedItem).Name;
-            Settings.Default.downmix = downmix.IsChecked.Value;
+            Settings.Default.downmix = downmix.SelectedIndex;
             Settings.Default.outputPath = processor.OutputPath;
             Settings.Default.zipAfter = zipAfter.IsChecked.Value;
             Settings.Default.deleteAftter = deleteAfter.IsChecked.Value;
