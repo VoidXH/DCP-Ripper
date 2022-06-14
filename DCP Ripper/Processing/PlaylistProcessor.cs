@@ -113,7 +113,12 @@ namespace DCP_Ripper.Processing {
                         video = false;
                         break;
                     case "MainSubtitle":
-                        while (reader.Read() && (reader.NodeType != XmlNodeType.EndElement || !reader.Name.Equals("MainSubtitle"))) ;
+                        while (reader.Read() &&
+                            (reader.NodeType != XmlNodeType.EndElement || !reader.Name.Equals("MainSubtitle"))) ;
+                        break;
+                    case "ns1:AuxData":
+                        while (reader.Read() &&
+                            (reader.NodeType != XmlNodeType.EndElement || !reader.Name.Equals("ns1:AuxData"))) ;
                         break;
                     case "KeyId":
                         reel.needsKey = true;
