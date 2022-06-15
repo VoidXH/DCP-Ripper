@@ -155,8 +155,10 @@ namespace DCP_Ripper.Processing {
             string newPath = Path.Combine(Path.GetDirectoryName(path), "_temp.wav");
             if (Settings.Default.downmix == (int)Downmixer.Surround)
                 Downmix.Surround(reader, auro, newPath);
-            else if(Settings.Default.downmix == (int)Downmixer.GainKeeping51)
+            else if (Settings.Default.downmix == (int)Downmixer.GainKeeping51)
                 Downmix.GainKeeping51(reader, newPath);
+            else if (Settings.Default.downmix == (int)Downmixer.Cavern)
+                Downmix.Cavern(reader, newPath);
 
             reader.Dispose();
             if (File.Exists(newPath)) {
@@ -177,8 +179,8 @@ namespace DCP_Ripper.Processing {
             string fileName = GetStreamExportPath(content.audioFile, "mkv", false);
             if (!Settings.Default.overwrite && File.Exists(fileName))
                 return fileName;
-            if (Settings.Default.downmix == (int)Downmixer.Surround ||
-                Settings.Default.downmix == (int)Downmixer.GainKeeping51) {
+            if (Settings.Default.downmix != (int)Downmixer.Bypass &&
+                Settings.Default.downmix != (int)Downmixer.RawMapping) {
                 string tempName = fileName[..(fileName.LastIndexOf('.') + 1)] + "wav";
                 if ((Settings.Default.overwrite || !File.Exists(tempName)) &&
                     !LaunchFFmpeg(FFmpegCalls.AudioToPCM(content, tempName)))

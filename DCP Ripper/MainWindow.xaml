@@ -113,6 +113,7 @@
                     <ComboBoxItem x:Name="downmix_GainKeeping51" Content="Gain-keeping 5.1"/>
                     <ComboBoxItem x:Name="downmix_Surround" Content="5.1 or 7.1 if available" IsSelected="True"/>
                     <ComboBoxItem x:Name="downmix_RawMapping" Content="Raw mapping"/>
+                    <ComboBoxItem x:Name="downmix_Cavern" Content="Render with Cavern"/>
                 </ComboBox>
             </Grid>
         </GroupBox>

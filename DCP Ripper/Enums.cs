@@ -255,6 +255,10 @@
         /// <summary>
         /// Applies the -mapping_family 255 argument.
         /// </summary>
-        RawMapping
+        RawMapping,
+        /// <summary>
+        /// Auto-detects the DCP's channel layout and mixes it to the user defined target layout set in the Cavern Driver.
+        /// </summary>
+        Cavern
     }
 }

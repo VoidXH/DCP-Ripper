@@ -1907,12 +1907,13 @@
             Remapping update rate.
             </summary>
         </member>
-        <member name="M:Cavern.Remapping.Remapper.#ctor(System.Int32,System.Int32)">
+        <member name="M:Cavern.Remapping.Remapper.#ctor(System.Int32,System.Int32,System.Boolean)">
             <summary>
             Convert any standard multichannel audio stream to the channel layout set for Cavern.
             </summary>
             <param name="channels">Channels to remap</param>
             <param name="updateRate">Remapping update rate</param>
+            <param name="loadCavernSettings">Load user settings including the Cavern channel layout</param>
         </member>
         <member name="M:Cavern.Remapping.Remapper.Update(System.Single[],System.Int32)">
             <summary>
