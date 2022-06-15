@@ -99,6 +99,8 @@ namespace DCP_Ripper.Processing {
                     case "FrameRate":
                         reader.Read();
                         int split = reader.Value.IndexOf(' ');
+                        if (string.IsNullOrWhiteSpace(reader.Value)) // Handles <FrameRate />
+                            break;
                         reel.framerate = int.Parse(reader.Value[..split]) / float.Parse(reader.Value[split..]);
                         if (reel.is3D)
                             reel.framerate *= .5f;
@@ -113,12 +115,11 @@ namespace DCP_Ripper.Processing {
                         video = false;
                         break;
                     case "MainSubtitle":
-                        while (reader.Read() &&
-                            (reader.NodeType != XmlNodeType.EndElement || !reader.Name.Equals("MainSubtitle"))) ;
-                        break;
                     case "ns1:AuxData":
+                    case "axd:AuxData":
+                        string name = reader.Name;
                         while (reader.Read() &&
-                            (reader.NodeType != XmlNodeType.EndElement || !reader.Name.Equals("ns1:AuxData"))) ;
+                            (reader.NodeType != XmlNodeType.EndElement || !reader.Name.Equals(name))) ;
                         break;
                     case "KeyId":
                         reel.needsKey = true;
