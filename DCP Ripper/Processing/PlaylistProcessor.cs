@@ -40,7 +40,8 @@ namespace DCP_Ripper.Processing {
                             break;
                         case "Path":
                             reader.Read();
-                            map.Add(nextId, reader.Value);
+                            if (!map.ContainsKey(nextId))
+                                map.Add(nextId, reader.Value);
                             break;
                         default:
                             break;
