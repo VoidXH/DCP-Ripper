@@ -16,6 +16,11 @@ namespace DCP_Ripper.Processing {
         public const string parentMarker = "parent";
 
         /// <summary>
+        /// Marks if there's a running conversion.
+        /// </summary>
+        public bool InProgress => task != null && !task.IsCompleted;
+
+        /// <summary>
         /// The list of compositions to process.
         /// </summary>
         public List<CompositionInfo> Compositions { get; set; }
@@ -98,8 +103,6 @@ namespace DCP_Ripper.Processing {
         /// </summary>
         /// <returns>Number of successful conversions</returns>
         public void Process() {
-            if (Compositions == null || FFmpegPath == null)
-                return;
             failures = new StringBuilder();
             foreach (CompositionInfo composition in Compositions)
                 ProcessSingle(composition);
@@ -111,11 +114,10 @@ namespace DCP_Ripper.Processing {
         /// Start processing the selected composition.
         /// </summary>
         /// <returns>Number of successful conversions</returns>
-        public void ProcessSelected(CompositionInfo composition) {
-            if (Compositions == null || FFmpegPath == null)
-                return;
+        public void ProcessSelected(List<CompositionInfo> compositions) {
             failures = new StringBuilder();
-            ProcessSingle(composition);
+            foreach (CompositionInfo composition in compositions)
+                ProcessSingle(composition);
             OnStatusUpdate?.Invoke("Finished!");
             OnCompletion?.Invoke();
         }
@@ -123,9 +125,8 @@ namespace DCP_Ripper.Processing {
         /// <summary>
         /// Start processing the compositions as a <see cref="Task"/>.
         /// </summary>
-        /// <returns>A task with a return value of the number of successful conversions</returns>
         public Task ProcessAsync() {
-            if (task != null && !task.IsCompleted)
+            if (InProgress)
                 return task;
             task = new Task(Process);
             task.Start();
@@ -133,13 +134,12 @@ namespace DCP_Ripper.Processing {
         }
 
         /// <summary>
-        /// Start processing the selected composition as a <see cref="Task"/>.
+        /// Start processing the selected compositions as a <see cref="Task"/>.
         /// </summary>
-        /// <returns>A task with a return value of the number of successful conversions</returns>
-        public Task ProcessSelectedAsync(CompositionInfo composition) {
-            if (task != null && !task.IsCompleted)
+        public Task ProcessSelectedAsync(List<CompositionInfo> compositions) {
+            if (InProgress)
                 return task;
-            task = new Task(() => ProcessSelected(composition));
+            task = new Task(() => ProcessSelected(compositions));
             task.Start();
             return task;
         }

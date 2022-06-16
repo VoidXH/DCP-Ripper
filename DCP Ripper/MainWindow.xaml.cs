@@ -125,19 +125,30 @@ namespace DCP_Ripper {
         }
 
         async void Start_Click(object sender, RoutedEventArgs e) {
+            if (processor.InProgress) {
+                MessageBox.Show("A conversion is already in progress.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             failureList.Visibility = Visibility.Hidden;
             ApplySettings();
             await processor.ProcessAsync();
         }
 
         async void StartSelected_Click(object sender, RoutedEventArgs e) {
+            if (processor.InProgress) {
+                MessageBox.Show("A conversion is already in progress.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             failureList.Visibility = Visibility.Hidden;
             ApplySettings();
-            if (foundContent.SelectedItem is not CompositionInfo selected) {
+            List<CompositionInfo> compositions = new();
+            foreach (CompositionInfo info in foundContent.SelectedItems)
+                compositions.Add(info);
+            if (compositions.Count == 0) {
                 MessageBox.Show("No content was selected.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            await processor.ProcessSelectedAsync(selected);
+            await processor.ProcessSelectedAsync(compositions);
         }
 
         /// <summary>
