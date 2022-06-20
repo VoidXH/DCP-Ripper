@@ -163,6 +163,7 @@ namespace DCP_Ripper {
             int processed = processor.Compositions.Count;
             if (Settings.Default.deleteAftter)
                 Dispatcher.Invoke(() => Refresh_Click(null, null));
+            failedContent = processor.GetFailedContents();
             int failureCount = failedContent != null ? failedContent.Count(c => c == '\n') : 0;
             if (failureCount == 0)
                 return;

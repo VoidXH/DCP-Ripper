@@ -64,10 +64,10 @@ namespace DCP_Ripper.Processing {
         /// <summary>
         /// Process a single composition.
         /// </summary>
-        bool ProcessSingle(CompositionInfo composition) {
+        void ProcessSingle(CompositionInfo composition) {
             if (!File.Exists(composition.Path)) {
                 failures.AppendLine(Path.GetFileName(composition.Path) + " does not exist.");
-                return false;
+                return;
             }
             OnStatusUpdate?.Invoke($"Processing {composition}...");
             string finalOutput = OutputPath,
@@ -76,7 +76,7 @@ namespace DCP_Ripper.Processing {
                 finalOutput = Path.GetDirectoryName(sourceFolder);
                 if (finalOutput == null) {
                     failures.AppendLine($"Can't output {composition} above a root folder.");
-                    return false;
+                    return;
                 }
             }
 
@@ -91,11 +91,8 @@ namespace DCP_Ripper.Processing {
                 }
                 if (Settings.Default.deleteAftter)
                     Finder.DeleteAssets(sourceFolder);
-                return true;
-            } else {
+            } else
                 failures.AppendLine($"Conversion of {composition} failed - most likely a codec error.");
-                return false;
-            }
         }
 
         /// <summary>
