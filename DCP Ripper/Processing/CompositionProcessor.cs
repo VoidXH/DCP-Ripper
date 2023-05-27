@@ -124,6 +124,7 @@ namespace DCP_Ripper.Processing {
             if (Settings.Default.overwrite || !File.Exists(rightFile))
                 if (!LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, rightFile, lowerCRF, false, halfSize, sbs, extraFilters)))
                     return null;
+            extraFilters = string.Empty; // Clear 2K downscale, it was already done before
             if (LaunchFFmpeg(FFmpegCalls.Merge3D(leftFile, rightFile, sbs, fileName, extraFilters))) {
                 if (!File.Exists(fileName))
                     return null;
@@ -203,9 +204,13 @@ namespace DCP_Ripper.Processing {
         public bool Merge(string video, string audio, string fileName) {
             if (File.Exists(video) && File.Exists(audio) &&
                 LaunchFFmpeg($"-i \"{video}\" -i \"{audio}\" -c copy -v error -stats \"{fileName}\"")) {
-                File.Delete(video);
-                File.Delete(audio);
-                return File.Exists(fileName);
+                if (File.Exists(fileName)) {
+                    File.Delete(video);
+                    File.Delete(audio);
+                    return true;
+                } else {
+                    return false;
+                }
             }
             return false;
         }
@@ -218,9 +223,7 @@ namespace DCP_Ripper.Processing {
             for (int i = 0, length = Contents.Count; i < length; ++i) {
                 if (Contents[i].needsKey || Contents[i].videoFile == null)
                     continue;
-                string path = ForcePath;
-                if (path == null)
-                    path = Path.GetDirectoryName(Contents[i].videoFile);
+                string path = ForcePath ?? Path.GetDirectoryName(Contents[i].videoFile);
                 string outputTitle = Settings.Default.downscale ? Title.Replace("_4K", "_2K") : Title;
                 string fileName = Path.Combine(path, length == 1 ? outputTitle + ".mkv" : $"{outputTitle}_{i + 1}.mkv");
                 if (!Settings.Default.overwrite && File.Exists(fileName)) {
