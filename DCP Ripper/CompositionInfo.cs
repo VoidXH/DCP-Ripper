@@ -224,7 +224,7 @@ namespace DCP_Ripper {
         /// Checks if two compositions are the same, except for the language and creator.
         /// </summary>
         public bool Equals(CompositionInfo other) =>
-            Title.Equals(other.Title) && Type.Equals(other.Title) && Modifiers.Equals(other.Modifiers) &&
+            Title.Equals(other.Title) && Type.Equals(other.Type) && Modifiers.Equals(other.Modifiers) &&
             AspectRatio.Equals(other.AspectRatio) && Audio.Equals(other.Audio) && Resolution.Equals(other.Resolution);
 
         /// <summary>

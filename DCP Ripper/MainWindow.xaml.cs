@@ -1,5 +1,6 @@
 ﻿using DCP_Ripper.Processing;
 using DCP_Ripper.Properties;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -44,8 +45,8 @@ namespace DCP_Ripper {
             version.Content = 'v' + FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
         }
 
-        void CheckFFmpeg(string dir) {
-            if (start.IsEnabled = startSelected.IsEnabled = File.Exists(processor.FFmpegPath = dir + "\\ffmpeg.exe"))
+        void CheckFFmpeg() {
+            if (start.IsEnabled = startSelected.IsEnabled = File.Exists(Settings.Default.ffmpegLocation))
                 processLabel.Text = "Ready.";
             else
                 processLabel.Text = "FFmpeg isn't found, please locate.";
@@ -67,12 +68,13 @@ namespace DCP_Ripper {
             ComboBoxSelect(mode3d, Settings.Default.mode3d);
             downscale.IsChecked = Settings.Default.downscale;
             ripAudio.IsChecked = Settings.Default.ripAudio;
+            multilingual.IsChecked = Settings.Default.multilingual;
             ComboBoxSelect(audio, Settings.Default.audio);
             downmix.SelectedIndex = Settings.Default.downmix;
             zipAfter.IsChecked = Settings.Default.zipAfter;
             deleteAfter.IsChecked = Settings.Default.deleteAftter;
             overwrite.IsChecked = Settings.Default.overwrite;
-            CheckFFmpeg(Settings.Default.ffmpegLocation);
+            CheckFFmpeg();
             switch (Settings.Default.outputPath) {
                 case "":
                     outputDefault.IsChecked = true;
@@ -173,11 +175,13 @@ namespace DCP_Ripper {
         }
 
         void LocateFFmpeg_Click(object sender, RoutedEventArgs e) {
-            using FolderBrowserDialog dialog = new();
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
-                CheckFFmpeg(dialog.SelectedPath);
-                Settings.Default.ffmpegLocation = dialog.SelectedPath;
+            OpenFileDialog dialog = new() {
+                Filter = "FFmpeg|ffmpeg.exe"
+            };
+            if (dialog.ShowDialog().Value) {
+                Settings.Default.ffmpegLocation = dialog.FileName;
                 Settings.Default.Save();
+                CheckFFmpeg();
             }
         }
 
@@ -224,6 +228,7 @@ namespace DCP_Ripper {
             Settings.Default.mode3d = ((ComboBoxItem)mode3d.SelectedItem).Name;
             Settings.Default.downscale = downscale.IsChecked.Value;
             Settings.Default.ripAudio = ripAudio.IsChecked.Value;
+            Settings.Default.multilingual = multilingual.IsChecked.Value;
             Settings.Default.audio = ((ComboBoxItem)audio.SelectedItem).Name;
             Settings.Default.downmix = downmix.SelectedIndex;
             Settings.Default.outputPath = processor.OutputPath;

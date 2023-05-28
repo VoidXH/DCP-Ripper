@@ -1,5 +1,7 @@
 ﻿using DCP_Ripper.Processing;
 using DCP_Ripper.Properties;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace DCP_Ripper.Consts {
@@ -11,6 +13,40 @@ namespace DCP_Ripper.Consts {
         /// Precedes the filter list.
         /// </summary>
         const string videoFilterTag = "-vf ";
+
+        /// <summary>
+        /// Launch the FFmpeg to process a file with the given arguments.
+        /// </summary>
+        public static bool LaunchFFmpeg(string arguments) {
+            ProcessStartInfo start = new() {
+                Arguments = arguments,
+                FileName = Settings.Default.ffmpegLocation
+            };
+            try {
+                using Process proc = Process.Start(start);
+                proc.WaitForExit();
+                return proc.ExitCode == 0;
+            } catch {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Merge a converted video and audio file, deleting the sources.
+        /// </summary>
+        public static bool Merge(string video, string audio, string fileName) {
+            if (File.Exists(video) && File.Exists(audio) &&
+                LaunchFFmpeg($"-i \"{video}\" -i \"{audio}\" -c copy -v error -stats \"{fileName}\"")) {
+                if (File.Exists(fileName)) {
+                    File.Delete(video);
+                    File.Delete(audio);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            return false;
+        }
 
         /// <summary>
         /// Applies the selected audio codec on an audio file.

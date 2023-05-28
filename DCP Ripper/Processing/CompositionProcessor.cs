@@ -52,16 +52,10 @@ namespace DCP_Ripper.Processing {
         readonly CompositionInfo info;
 
         /// <summary>
-        /// Path of FFmpeg.
-        /// </summary>
-        readonly string ffmpegPath;
-
-        /// <summary>
         /// Load a composition for processing.
         /// </summary>
-        public CompositionProcessor(string ffmpegPath, CompositionInfo info) {
+        public CompositionProcessor(CompositionInfo info) {
             this.info = info;
-            this.ffmpegPath = ffmpegPath;
             PlaylistProcessor importer = new(info.Path);
             Contents = importer.Contents;
             Is4K = (Title = importer.Title).Contains("_4K");
@@ -79,23 +73,6 @@ namespace DCP_Ripper.Processing {
         }
 
         /// <summary>
-        /// Launch the FFmpeg to process a file with the given arguments.
-        /// </summary>
-        bool LaunchFFmpeg(string arguments) {
-            ProcessStartInfo start = new() {
-                Arguments = arguments,
-                FileName = ffmpegPath
-            };
-            try {
-                using Process proc = Process.Start(start);
-                proc.WaitForExit();
-                return proc.ExitCode == 0;
-            } catch {
-                return false;
-            }
-        }
-
-        /// <summary>
         /// Process a video file. The created file will have the same name, but in Matroska format, which is the returned value.
         /// </summary>
         public string ProcessVideo(Reel content, string extraFilters = "") {
@@ -105,27 +82,27 @@ namespace DCP_Ripper.Processing {
             if (!Settings.Default.overwrite && File.Exists(fileName))
                 return fileName;
             if (!content.is3D)
-                return LaunchFFmpeg(FFmpegCalls.VideoToSelectedCodec(content, fileName, extraFilters)) ? fileName : null;
+                return FFmpegCalls.LaunchFFmpeg(FFmpegCalls.VideoToSelectedCodec(content, fileName, extraFilters)) ? fileName : null;
 
             int lowerCRF = Math.Max(CRF3D - 5, 0);
             if (StereoMode == Mode3D.Interop)
-                return LaunchFFmpeg(FFmpegCalls.Interop3D(content, fileName)) ? fileName : null;
+                return FFmpegCalls.LaunchFFmpeg(FFmpegCalls.Interop3D(content, fileName)) ? fileName : null;
             else if (StereoMode == Mode3D.LeftEye || StereoMode == Mode3D.RightEye)
-                return LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, fileName, Settings.Default.crf,
+                return FFmpegCalls.LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, fileName, Settings.Default.crf,
                     StereoMode == Mode3D.LeftEye, false, false, extraFilters)) ? fileName : null;
 
             bool halfSize = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.HalfOverUnder;
             bool sbs = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.SideBySide;
             string leftFile = GetStreamExportPath(content.videoFile, "L.mkv", true);
             if (Settings.Default.overwrite || !File.Exists(leftFile))
-                if (!LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, leftFile, lowerCRF, true, halfSize, sbs, extraFilters)))
+                if (!FFmpegCalls.LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, leftFile, lowerCRF, true, halfSize, sbs, extraFilters)))
                     return null;
             string rightFile = GetStreamExportPath(content.videoFile, "R.mkv", true);
             if (Settings.Default.overwrite || !File.Exists(rightFile))
-                if (!LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, rightFile, lowerCRF, false, halfSize, sbs, extraFilters)))
+                if (!FFmpegCalls.LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, rightFile, lowerCRF, false, halfSize, sbs, extraFilters)))
                     return null;
             extraFilters = string.Empty; // Clear 2K downscale, it was already done before
-            if (LaunchFFmpeg(FFmpegCalls.Merge3D(leftFile, rightFile, sbs, fileName, extraFilters))) {
+            if (FFmpegCalls.LaunchFFmpeg(FFmpegCalls.Merge3D(leftFile, rightFile, sbs, fileName, extraFilters))) {
                 if (!File.Exists(fileName))
                     return null;
                 File.Delete(leftFile);
@@ -184,48 +161,33 @@ namespace DCP_Ripper.Processing {
                 Settings.Default.downmix != (int)Downmixer.RawMapping) {
                 string tempName = fileName[..(fileName.LastIndexOf('.') + 1)] + "wav";
                 if ((Settings.Default.overwrite || !File.Exists(tempName)) &&
-                    !LaunchFFmpeg(FFmpegCalls.AudioToPCM(content, tempName)))
+                    !FFmpegCalls.LaunchFFmpeg(FFmpegCalls.AudioToPCM(content, tempName)))
                     return null;
                 if (!ApplyDownmix(tempName, auro))
                     return null;
-                if (LaunchFFmpeg(FFmpegCalls.ApplyCodec(tempName, fileName))) {
+                if (FFmpegCalls.LaunchFFmpeg(FFmpegCalls.ApplyCodec(tempName, fileName))) {
                     File.Delete(tempName);
                     return fileName;
                 }
                 return null;
             }
             string mapping = Settings.Default.downmix != (int)Downmixer.RawMapping ? string.Empty : rawMapping;
-            return LaunchFFmpeg(FFmpegCalls.AudioToSelectedCodec(content, fileName, mapping)) ? fileName : null;
+            return FFmpegCalls.LaunchFFmpeg(FFmpegCalls.AudioToSelectedCodec(content, fileName, mapping)) ? fileName : null;
         }
 
         /// <summary>
-        /// Merge a converted video and audio file, deleting the sources.
+        /// Process the video/audio files of this DCP and merge them if set up that way.
         /// </summary>
-        public bool Merge(string video, string audio, string fileName) {
-            if (File.Exists(video) && File.Exists(audio) &&
-                LaunchFFmpeg($"-i \"{video}\" -i \"{audio}\" -c copy -v error -stats \"{fileName}\"")) {
-                if (File.Exists(fileName)) {
-                    File.Delete(video);
-                    File.Delete(audio);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Process the video files of this DCP. Returns if all reels were successfully processed.
-        /// </summary>
-        public bool ProcessComposition() {
+        /// <returns>All reels were successfully processed, and the output path of the only reel for single-reel content.</returns>
+        public (bool success, string output) ProcessComposition() {
             int reelsDone = 0;
+            string fileName = null;
             for (int i = 0, length = Contents.Count; i < length; ++i) {
                 if (Contents[i].needsKey || Contents[i].videoFile == null)
                     continue;
                 string path = ForcePath ?? Path.GetDirectoryName(Contents[i].videoFile);
                 string outputTitle = Settings.Default.downscale ? Title.Replace("_4K", "_2K") : Title;
-                string fileName = Path.Combine(path, length == 1 ? outputTitle + ".mkv" : $"{outputTitle}_{i + 1}.mkv");
+                fileName = Path.Combine(path, length == 1 ? outputTitle + ".mkv" : $"{outputTitle}_{i + 1}.mkv");
                 if (!Settings.Default.overwrite && File.Exists(fileName)) {
                     ++reelsDone;
                     continue;
@@ -238,7 +200,7 @@ namespace DCP_Ripper.Processing {
                     audio = ProcessAudio(Contents[i], info.Audio == AudioTrack.Auro);
 
                 if (Settings.Default.ripVideo && Settings.Default.ripAudio) {
-                    if (video != null && audio != null && Merge(video, audio, fileName))
+                    if (video != null && audio != null && FFmpegCalls.Merge(video, audio, fileName))
                         ++reelsDone;
                 } else if (Settings.Default.ripVideo) {
                     if (video != null) {
@@ -253,7 +215,7 @@ namespace DCP_Ripper.Processing {
                 } else
                     ++reelsDone;
             }
-            return reelsDone == Contents.Count;
+            return (reelsDone == Contents.Count, Contents.Count == 1 ? fileName : null);
         }
     }
 }

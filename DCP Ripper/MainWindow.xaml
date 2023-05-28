@@ -68,7 +68,8 @@
                     <ComboBoxItem Name="crf33" Content="33 (very low quality)"/>
                     <ComboBoxItem Name="crf51" Content="51 (lowest quality)"/>
                 </ComboBox>
-                <CheckBox x:Name="matchCRF" Content="Use same CRF for 3D content" HorizontalAlignment="Left" Margin="10,83,0,0" VerticalAlignment="Top" Checked="MatchCRF_Checked" Unchecked="MatchCRF_Unchecked"/>
+                <CheckBox x:Name="matchCRF" Margin="10,83,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"
+                          Content="Use same CRF for 3D content" Checked="MatchCRF_Checked" Unchecked="MatchCRF_Unchecked"/>
                 <TextBlock Text="3D CRF:" HorizontalAlignment="Left" Margin="10,107,0,0" VerticalAlignment="Top"/>
                 <ComboBox x:Name="crf3d" Margin="56,104,10,0" VerticalAlignment="Top">
                     <ComboBoxItem Name="crf0_3d" Content="0 (lossless)"/>
@@ -90,13 +91,14 @@
                     <ComboBoxItem Name="LeftEye" Content="Left eye retaining 2D"/>
                     <ComboBoxItem Name="RightEye" Content="Right eye retaining 2D"/>
                 </ComboBox>
-                <CheckBox x:Name="downscale" Content="Downscale 4K content to 2K" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,158,0,0"/>
+                <CheckBox x:Name="downscale" Margin="10,158,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"
+                          Content="Downscale 4K content to 2K"/>
             </Grid>
         </GroupBox>
-        <GroupBox x:Name="audioBox" Grid.Column="1" Header="Audio settings" Height="114" Margin="10,221,10,0" VerticalAlignment="Top">
+        <GroupBox x:Name="audioBox" Grid.Column="1" Header="Audio settings" Margin="10,221,10,0" VerticalAlignment="Top" Height="130">
             <Grid>
-                <CheckBox x:Name="ripAudio" Content="Rip audio" IsChecked="True"
-                          HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                <CheckBox x:Name="ripAudio" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"
+                          Content="Rip audio" IsChecked="True"/>
                 <TextBlock Text="Format:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,33,0,0"/>
                 <ComboBox x:Name="audio" HorizontalAlignment="Left" Width="153" Margin="55,30,0,0" VerticalAlignment="Top">
                     <ComboBoxItem x:Name="aac" Content="AAC (low quality, small, 5.1 only)"/>
@@ -115,6 +117,8 @@
                     <ComboBoxItem x:Name="downmix_RawMapping" Content="Raw mapping"/>
                     <ComboBoxItem x:Name="downmix_Cavern" Content="Render with Cavern"/>
                 </ComboBox>
+                <CheckBox x:Name="multilingual" Margin="10,84,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"
+                          Content="Merge multilingual" IsChecked="False"/>
             </Grid>
         </GroupBox>
         <GroupBox x:Name="processBox" Grid.Column="2" Header="Process" Margin="10,10,10,44">
@@ -122,9 +126,12 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <Button x:Name="start" Content="Start all" HorizontalAlignment="Left" Margin="10,214,0,0" VerticalAlignment="Top" Width="96" Click="Start_Click" IsEnabled="False"/>
-                <Button x:Name="startSelected" Content="Start selected" Margin="0,214,10,0" VerticalAlignment="Top" Click="StartSelected_Click" IsEnabled="False" HorizontalAlignment="Right" Width="97"/>
-                <Button x:Name="locateFFmpeg" Content="Locate FFmpeg" Margin="10,10,0,0" VerticalAlignment="Top" Click="LocateFFmpeg_Click" HorizontalAlignment="Left" Width="119"/>
+                <Button x:Name="start" Margin="10,214,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="96"
+                        Content="Start all" Click="Start_Click" IsEnabled="False"/>
+                <Button x:Name="startSelected" Margin="0,214,10,0" HorizontalAlignment="Right" VerticalAlignment="Top" Width="97"
+                        Content="Start selected" Click="StartSelected_Click" IsEnabled="False"/>
+                <Button x:Name="locateFFmpeg" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="119"
+                        Content="Locate FFmpeg" Click="LocateFFmpeg_Click"/>
                 <GroupBox Header="Output location" Height="91" Margin="10,35,10,0" VerticalAlignment="Top">
                     <Grid>
                         <RadioButton x:Name="outputDefault" Content="Content folder" HorizontalAlignment="Left" Margin="10,8,0,0" VerticalAlignment="Top" GroupName="outputLocation" IsChecked="True" Checked="OutputDefault_Checked"/>
