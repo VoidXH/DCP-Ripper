@@ -119,7 +119,7 @@ namespace DCP_Ripper.Consts {
         /// Processes one eye's content from a 3D stream.
         /// </summary>
         public static string SingleEye3D(Reel content, string outputFile, int crf, bool leftEye, bool halfSize, bool sbs,
-            string extraFilters) {
+            string extraFilters = "") {
             const string args = "{0} -ss {1} -i \"{2}\" -t {3} {4} -c:v {5} {6} -crf {7} -v error -stats \"{8}\"";
             return string.Format(args,
                 "-r " + (content.framerate * 2).ToFFmpegNumber(), // Set framerate to double: DCP 3D is interop (altering frames)

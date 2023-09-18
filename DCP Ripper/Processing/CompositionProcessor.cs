@@ -95,13 +95,12 @@ namespace DCP_Ripper.Processing {
             bool sbs = StereoMode == Mode3D.HalfSideBySide || StereoMode == Mode3D.SideBySide;
             string leftFile = GetStreamExportPath(content.videoFile, "L.mkv", true);
             if (Settings.Default.overwrite || !File.Exists(leftFile))
-                if (!FFmpegCalls.LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, leftFile, lowerCRF, true, halfSize, sbs, extraFilters)))
+                if (!FFmpegCalls.LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, leftFile, lowerCRF, true, halfSize, sbs)))
                     return null;
             string rightFile = GetStreamExportPath(content.videoFile, "R.mkv", true);
             if (Settings.Default.overwrite || !File.Exists(rightFile))
-                if (!FFmpegCalls.LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, rightFile, lowerCRF, false, halfSize, sbs, extraFilters)))
+                if (!FFmpegCalls.LaunchFFmpeg(FFmpegCalls.SingleEye3D(content, rightFile, lowerCRF, false, halfSize, sbs)))
                     return null;
-            extraFilters = string.Empty; // Clear 2K downscale, it was already done before
             if (FFmpegCalls.LaunchFFmpeg(FFmpegCalls.Merge3D(leftFile, rightFile, sbs, fileName, extraFilters))) {
                 if (!File.Exists(fileName))
                     return null;
