@@ -56,11 +56,24 @@ namespace DCP_Ripper.Processing {
             Dictionary<string, string> assets = ParseAssetMap(directory);
             Reel reel = new();
             using XmlReader reader = XmlReader.Create(cplPath);
-            bool video = true;
+            bool video = false,
+                audio = false;
             while (reader.Read()) {
                 if (reader.NodeType != XmlNodeType.Element) {
-                    if (reader.NodeType == XmlNodeType.EndElement && reader.Name.Equals("Reel"))
-                        Contents.Add(reel);
+                    if (reader.NodeType == XmlNodeType.EndElement) {
+                        switch (reader.Name) {
+                            case "Reel":
+                                Contents.Add(reel);
+                                break;
+                            case "MainPicture":
+                            case "MainStereoscopicPicture":
+                                video = false;
+                                break;
+                            case "MainSound":
+                                audio = false;
+                                break;
+                        }
+                    }
                     continue;
                 } else if (reader.Name.EndsWith("MainStereoscopicPicture")) {
                     video = true;
@@ -71,27 +84,30 @@ namespace DCP_Ripper.Processing {
                     case "Id":
                         reader.Read();
                         if (assets.ContainsKey(reader.Value)) {
-                            if (video)
+                            if (video) {
                                 reel.videoFile = directory + assets[reader.Value];
-                            else
+                            } else if (audio) {
                                 reel.audioFile = directory + assets[reader.Value];
+                            }
                         } else { // Try to parse a single reel content with a missing asset map
                             List<string> bulkAssets = Finder.ForceGetAssets(directory);
                             if (bulkAssets.Count == 2) {
                                 long size0 = new FileInfo(bulkAssets[0]).Length, size1 = new FileInfo(bulkAssets[1]).Length;
-                                if (video)
+                                if (video) {
                                     reel.videoFile = bulkAssets[size0 < size1 ? 1 : 0];
-                                else
+                                } else if (audio) {
                                     reel.audioFile = bulkAssets[size1 < size0 ? 1 : 0];
+                                }
                             }
                         }
                         break;
                     case "EntryPoint":
                         reader.Read();
-                        if (video)
+                        if (video) {
                             reel.videoStartFrame = int.Parse(reader.Value);
-                        else
+                        } else if (audio) {
                             reel.audioStartFrame = int.Parse(reader.Value);
+                        }
                         break;
                     case "Duration":
                         reader.Read();
@@ -99,9 +115,9 @@ namespace DCP_Ripper.Processing {
                         break;
                     case "FrameRate":
                         reader.Read();
-                        int split = reader.Value.IndexOf(' ');
                         if (string.IsNullOrWhiteSpace(reader.Value)) // Handles <FrameRate />
                             break;
+                        int split = reader.Value.IndexOf(' ');
                         reel.framerate = int.Parse(reader.Value[..split]) / float.Parse(reader.Value[split..]);
                         if (reel.is3D)
                             reel.framerate *= .5f;
@@ -113,14 +129,16 @@ namespace DCP_Ripper.Processing {
                         video = true;
                         break;
                     case "MainSound":
-                        video = false;
+                        audio = true;
                         break;
                     case "MainSubtitle":
                     case "ns1:AuxData":
                     case "axd:AuxData":
+                    case "axd-cpl:AuxData":
                         string name = reader.Name;
-                        while (reader.Read() &&
-                            (reader.NodeType != XmlNodeType.EndElement || !reader.Name.Equals(name))) ;
+                        while (reader.Read() && (reader.NodeType != XmlNodeType.EndElement || !reader.Name.Equals(name))) {
+                            // Skip these blocks, they can't be parsed
+                        }
                         break;
                     case "KeyId":
                         reel.needsKey = true;

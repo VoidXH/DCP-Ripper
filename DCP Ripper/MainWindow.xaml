@@ -112,8 +112,8 @@
                 <TextBlock Text="Downmix:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,60,0,0"/>
                 <ComboBox x:Name="downmix" HorizontalAlignment="Left" Width="141" Margin="67,57,0,0" VerticalAlignment="Top">
                     <ComboBoxItem x:Name="downmix_Bypass" Content="Bypass"/>
-                    <ComboBoxItem x:Name="downmix_GainKeeping51" Content="Gain-keeping 5.1"/>
-                    <ComboBoxItem x:Name="downmix_Surround" Content="5.1 or 7.1 if available" IsSelected="True"/>
+                    <ComboBoxItem x:Name="downmix_GainKeeping51" Content="Gain-keeping 5.1 (strip HI/VI/syncs)"/>
+                    <ComboBoxItem x:Name="downmix_Surround" Content="5.1 or 7.1 if available (strip HI/VI/syncs)" IsSelected="True"/>
                     <ComboBoxItem x:Name="downmix_RawMapping" Content="Raw mapping"/>
                     <ComboBoxItem x:Name="downmix_Cavern" Content="Render with Cavern"/>
                 </ComboBox>

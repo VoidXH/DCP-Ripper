@@ -85,8 +85,9 @@ namespace DCP_Ripper.Processing {
             while (progress < input.Length) {
                 input.ReadBlock(inData, 0, blockSize);
                 // 6-7 are hearing/visually impaired tracks, 12+ are sync signals
-                for (int i = 8; i < Math.Min(inData.Length, 12); ++i)
+                for (int i = 8; i < Math.Min(inData.Length, 12); i++) {
                     WaveformUtils.Mix(inData[i], inData[4 + i % 2]);
+                }
                 writer.WriteBlock(outData, 0, Math.Min(blockSize, input.Length - progress));
                 progress += blockSize;
             }
